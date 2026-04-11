@@ -676,8 +676,8 @@ def _page6_how_to_use(ss, protest_year):
     # What to bring
     elements.append(Paragraph("WHAT TO BRING", bold))
     elements.append(Paragraph(
-        "1. <b>Three printed copies</b> of this report (one for you, one for "
-        "the panel, one for the EPCAD appraiser).", body))
+        "1. <b>Two printed copies</b> of this report (one for you, one for "
+        "the panel).", body))
     elements.append(Paragraph(
         "2. Your <b>appraisal notice</b> — the letter EPCAD mailed you.", body))
     elements.append(Paragraph(

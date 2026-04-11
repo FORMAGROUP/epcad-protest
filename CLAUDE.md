@@ -345,7 +345,7 @@ NEXT STEPS:
 2. Attach this PDF as your evidence packet
 3. If you have a licensed appraisal, file it 14 days before your hearing
    to trigger the "clear and convincing" evidence standard (§41.43(a-1))
-4. Bring 3 printed copies to your ARB hearing
+4. Bring 2 printed copies to your ARB hearing
 ```
 
 ---

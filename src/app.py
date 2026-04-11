@@ -64,7 +64,7 @@ with st.sidebar:
 1. Run your address below to generate a protest PDF
 2. File **Form 50-132** at [epcad.org](https://epcad.org)
 3. Attach the PDF as your evidence packet
-4. Bring **3 printed copies** to your ARB hearing
+4. Bring **2 printed copies** to your ARB hearing
 """)
 
     st.subheader("Legal Basis")
@@ -97,12 +97,12 @@ with st.sidebar:
             "No. Most homeowners represent themselves. The ARB hearing is "
             "informal — you sit at a table, present your evidence, and answer "
             "questions. This tool generates the same kind of comp grid that "
-            "professional tax agents use. Print it and bring 3 copies."
+            "professional tax agents use. Print it and bring 2 copies."
         )
 
     with st.expander("What should I bring to the hearing?"):
         st.markdown(
-            "1. **3 printed copies** of your protest PDF (one for you, one for "
+            "1. **2 printed copies** of your protest PDF (one for you, one for "
             "the panel, one for the EPCAD appraiser)\n"
             "2. Your **appraisal notice** (the letter EPCAD mailed you)\n"
             "3. **Photos** of any condition issues (roof damage, foundation "
