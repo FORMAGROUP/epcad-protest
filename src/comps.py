@@ -6,6 +6,8 @@ import os
 import sqlite3
 import sys
 
+from utils import haversine_miles, ensure_geocoded
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 DB_PATH = os.path.join(ROOT, "data", "epcad.db")
 CONFIG_PATH = os.path.join(ROOT, "config.json")
@@ -20,7 +22,9 @@ def get_db():
     if not os.path.exists(DB_PATH):
         print("ERROR: Database not found. Run ingest.py first.", file=sys.stderr)
         sys.exit(1)
-    return sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA journal_mode=WAL")
+    return conn
 
 
 def dict_row(cursor, row):
@@ -126,11 +130,35 @@ def find_subject(conn, account=None, address=None, zipcode=None):
     sys.exit(1)
 
 
+def _add_distance(comps, subj_lat, subj_lng):
+    """Add 'distance_miles' key to each comp dict using Haversine."""
+    for c in comps:
+        c["distance_miles"] = haversine_miles(
+            subj_lat, subj_lng,
+            c.get("latitude"), c.get("longitude"),
+        )
+    return comps
+
+
+def _distance_tier_label(dist):
+    """Return a distance note for comps over 1 mile."""
+    if dist is None:
+        return ""
+    if dist > 1.0:
+        return "(expanded search area)"
+    return ""
+
+
 def tier1_closed_sales(conn, subject, config):
     """Find comparable closed sales (Tier 1).
 
     Uses deed-dated properties where sale_price is the EPCAD market_value
     at time of sale (Texas non-disclosure state — no recorded sale prices).
+
+    Distance-based prioritization:
+      1. Comps within 0.5 miles (strongest)
+      2. Expand to 1.0 mile if fewer than 3 found
+      3. Expand to full ZIP if still under 3
     """
     cfg = config.get("tier1_filters", {})
     sqft_tol = cfg.get("sqft_tolerance_pct", 0.25)
@@ -145,6 +173,8 @@ def tier1_closed_sales(conn, subject, config):
     subj_zip = subject["situs_zip"]
     subj_lot = subject["lot_size_sqft"]
     subj_acct = subject["account_number"]
+    subj_lat = subject.get("latitude")
+    subj_lng = subject.get("longitude")
 
     subj_nbr = subject["neighborhood_code"]
 
@@ -233,9 +263,50 @@ def tier1_closed_sales(conn, subject, config):
         if len(filtered) >= min_comps:
             comps = filtered
 
-    # Score by proximity to subject
+    # ---------- Distance-based prioritization ----------
+    # Geocode subject + candidate comps on demand
+    all_accts = [subj_acct] + [c["account_number"] for c in comps]
+    ensure_geocoded(conn, all_accts)
+
+    # Re-read subject lat/lng after geocoding
+    cur = conn.cursor()
+    cur.execute("SELECT latitude, longitude FROM properties WHERE account_number = ?",
+                (subj_acct,))
+    row = cur.fetchone()
+    if row:
+        subj_lat, subj_lng = row
+        subject["latitude"] = subj_lat
+        subject["longitude"] = subj_lng
+
+    # Re-read comp lat/lng after geocoding
+    for c in comps:
+        cur.execute("SELECT latitude, longitude FROM properties WHERE account_number = ?",
+                    (c["account_number"],))
+        r = cur.fetchone()
+        if r:
+            c["latitude"], c["longitude"] = r
+
+    # Compute distances
+    _add_distance(comps, subj_lat, subj_lng)
+
+    # Distance-tiered selection: prefer close comps
+    if subj_lat is not None and subj_lng is not None:
+        within_half = [c for c in comps if c["distance_miles"] is not None
+                       and c["distance_miles"] <= 0.5]
+        within_one = [c for c in comps if c["distance_miles"] is not None
+                      and c["distance_miles"] <= 1.0]
+        if len(within_half) >= min_comps:
+            comps = within_half
+        elif len(within_one) >= min_comps:
+            comps = within_one
+        # else: keep all (ZIP-level fallback)
+
+    # Score by proximity to subject (physical + attribute)
     def proximity_score(comp):
         score = 0
+        # Physical distance weight (strongest signal)
+        if comp.get("distance_miles") is not None:
+            score += comp["distance_miles"] * 0.5
         if subj_sqft and comp["living_area_sqft"]:
             score += abs(comp["living_area_sqft"] - subj_sqft) / subj_sqft
         if subj_year and comp["year_built"]:
@@ -333,6 +404,51 @@ def tier3_equal_uniform(conn, subject, config):
     # Keep only comps assessed below subject $/sqft
     below = [c for c in comps if c["appr_psf"] and c["appr_psf"] < subj_psf]
 
+    # ---------- Distance-based prioritization ----------
+    all_accts = [subj_acct] + [c["account_number"] for c in below]
+    ensure_geocoded(conn, all_accts)
+
+    subj_lat = subject.get("latitude")
+    subj_lng = subject.get("longitude")
+
+    # Re-read subject lat/lng after geocoding (may already be set by tier1)
+    cur = conn.cursor()
+    cur.execute("SELECT latitude, longitude FROM properties WHERE account_number = ?",
+                (subj_acct,))
+    row = cur.fetchone()
+    if row:
+        subj_lat, subj_lng = row
+        subject["latitude"] = subj_lat
+        subject["longitude"] = subj_lng
+
+    # Re-read comp lat/lng after geocoding
+    for c in below:
+        cur.execute("SELECT latitude, longitude FROM properties WHERE account_number = ?",
+                    (c["account_number"],))
+        r = cur.fetchone()
+        if r:
+            c["latitude"], c["longitude"] = r
+
+    _add_distance(below, subj_lat, subj_lng)
+
+    # Distance-tiered selection for E&U comps
+    if subj_lat is not None and subj_lng is not None:
+        within_half = [c for c in below if c["distance_miles"] is not None
+                       and c["distance_miles"] <= 0.5]
+        within_one = [c for c in below if c["distance_miles"] is not None
+                      and c["distance_miles"] <= 1.0]
+        if len(within_half) >= min_comps:
+            below = within_half
+        elif len(within_one) >= min_comps:
+            below = within_one
+        # else: keep all (ZIP-level fallback)
+
+        # Sort by distance (closest first), then by appr_psf
+        below.sort(key=lambda c: (
+            c["distance_miles"] if c["distance_miles"] is not None else 999,
+            c["appr_psf"] or 0,
+        ))
+
     return below[:10]
 
 
@@ -363,21 +479,25 @@ def print_tier1(comps, subject):
         return
     print(f"  Comps found: {len(comps)}")
     print()
-    fmt = "  {:<8s} {:<30s} {:>6s} {:>10s} {:>12s} {:>10s} {:>8s}"
+    fmt = "  {:<8s} {:<26s} {:>6s} {:>10s} {:>12s} {:>10s} {:>8s} {:>7s}"
     print(fmt.format("Acct", "Address", "Zip", "Sale Date", "Sale Price",
-                      "Sqft", "$/Sqft"))
-    print("  " + "-" * 92)
+                      "Sqft", "$/Sqft", "Dist"))
+    print("  " + "-" * 99)
     for c in comps:
         psf = (c["sale_price"] / c["living_area_sqft"]
                if c["living_area_sqft"] and c["sale_price"] else 0)
+        dist = c.get("distance_miles")
+        dist_str = f"{dist:.2f}mi" if dist is not None else "—"
+        note = " *" if dist is not None and dist > 1.0 else ""
         print(fmt.format(
             c["account_number"][:8],
-            (c["situs_address"] or "")[:30],
+            (c["situs_address"] or "")[:26],
             c["situs_zip"] or "",
             c["sale_date"] or "",
             f"${c['sale_price']:,.0f}" if c["sale_price"] else "N/A",
             f"{c['living_area_sqft']:,.0f}" if c["living_area_sqft"] else "N/A",
             f"${psf:,.2f}",
+            dist_str + note,
         ))
     # Summary
     prices = [c["sale_price"] for c in comps if c["sale_price"]]
@@ -413,10 +533,10 @@ def print_tier3(comps, subject):
     print(f"  Comps found: {len(comps)} properties assessed below subject")
     print()
 
-    fmt = ("  {:<8s} {:<26s} {:>6s} {:>6s} {:>12s} {:>9s} {:>12s} {:>10s}")
+    fmt = ("  {:<8s} {:<22s} {:>6s} {:>6s} {:>12s} {:>9s} {:>12s} {:>10s} {:>7s}")
     print(fmt.format("Acct", "Address", "Sqft", "YrBlt",
-                      "Appraised", "$/Sqft", "Sale Price", "Sale Ratio"))
-    print("  " + "-" * 99)
+                      "Appraised", "$/Sqft", "Sale Price", "Sale Ratio", "Dist"))
+    print("  " + "-" * 106)
 
     # Subject row (bold label)
     print(fmt.format(
@@ -430,8 +550,9 @@ def print_tier3(comps, subject):
         f"{subj_appraised / subject['sale_price']:.3f}"
             if subject.get("sale_price") and subject["sale_price"] > 0
             else "—",
+        "—",
     ))
-    print("  " + "-" * 99)
+    print("  " + "-" * 106)
 
     for c in comps:
         appr = c["appraised_value"] or 0
@@ -439,15 +560,19 @@ def print_tier3(comps, subject):
         psf = c["appr_psf"] or 0
         sale = c.get("sale_price")
         ratio = c.get("sale_ratio")
+        dist = c.get("distance_miles")
+        dist_str = f"{dist:.2f}mi" if dist is not None else "—"
+        note = " *" if dist is not None and dist > 1.0 else ""
         print(fmt.format(
             c["account_number"][:8],
-            (c["situs_address"] or "")[:26],
+            (c["situs_address"] or "")[:22],
             f"{sqft:,.0f}",
             str(c["year_built"] or "N/A"),
             f"${appr:,.0f}",
             f"${psf:,.2f}",
             f"${sale:,.0f}" if sale and sale > 0 else "—",
             f"{ratio:.3f}" if ratio else "—",
+            dist_str + note,
         ))
 
     # Median $/sqft of comp set
@@ -480,6 +605,13 @@ def print_tier3(comps, subject):
                 if subj_ratio > median_ratio:
                     print(f"  Subject ratio exceeds comp median — "
                           f"assessment inconsistency")
+
+    # Note about expanded search area
+    expanded = [c for c in comps if c.get("distance_miles") is not None
+                and c["distance_miles"] > 1.0]
+    if expanded:
+        print()
+        print(f"  * {len(expanded)} comp(s) over 1 mile — expanded search area")
 
     print()
     print("  NOTE: Texas is a non-disclosure state. Sale prices shown reflect")

@@ -1,8 +1,9 @@
-"""Generate 5-page PDF protest packet using reportlab."""
+"""Generate 6-page PDF protest packet using reportlab."""
 
 import os
 from datetime import date
 
+from utils import haversine_miles
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -38,6 +39,16 @@ def _ratio(val):
     if val is None:
         return "—"
     return f"{val:.3f}"
+
+
+def _dist(val):
+    """Format distance in miles, flag if over 1 mile."""
+    if val is None:
+        return "—"
+    label = f"{val:.2f} mi"
+    if val > 1.0:
+        label += "*"
+    return label
 
 
 def _styles():
@@ -241,6 +252,8 @@ def _page2_tier1(subject, comps, ss):
                       lambda c: _dollar(c.get("age_adj"))))
     rows.append(_row("Lot Adj", "—",
                       lambda c: _dollar(c.get("lot_adj"))))
+    rows.append(_row("Distance", "—",
+                      lambda c: _dist(c.get("distance_miles"))))
     rows.append(_row("Adjusted Value", _dollar(appraised),
                       lambda c: _dollar(c.get("adjusted_value"))))
 
@@ -267,27 +280,37 @@ def _page2_tier1(subject, comps, ss):
     if len(comps) > 3:
         elements.append(Paragraph("Additional Comparable Sales:", ss["Heading4"]))
         extra_headers = ["Account", "Address", "Sale Date", "Sale Price",
-                         "Sqft", "$/Sqft", "Adj Value"]
+                         "Sqft", "$/Sqft", "Dist", "Adj Value"]
         extra_rows = [extra_headers]
         for c in comps[3:]:
             psf = (c["sale_price"] / c["living_area_sqft"]
                    if c.get("sale_price") and c.get("living_area_sqft") else None)
             extra_rows.append([
                 c["account_number"],
-                (c["situs_address"] or "")[:22],
+                (c["situs_address"] or "")[:20],
                 c.get("sale_date", "—"),
                 _dollar(c.get("sale_price")),
                 f"{c['living_area_sqft']:,.0f}" if c.get("living_area_sqft") else "—",
                 _psf(psf),
+                _dist(c.get("distance_miles")),
                 _dollar(c.get("adjusted_value")),
             ])
-        et = Table(extra_rows, colWidths=[0.75*inch, 1.7*inch, 0.85*inch,
-                                          0.95*inch, 0.65*inch, 0.7*inch, 0.95*inch])
+        et = Table(extra_rows, colWidths=[0.75*inch, 1.5*inch, 0.85*inch,
+                                          0.95*inch, 0.6*inch, 0.6*inch,
+                                          0.6*inch, 0.85*inch])
         es = _table_style_base()
         _alt_row_shading(es, len(extra_rows) - 1)
         et.setStyle(TableStyle(es))
         elements.append(et)
         elements.append(Spacer(1, 8))
+
+    # Flag expanded search area comps
+    expanded = [c for c in comps if c.get("distance_miles") is not None
+                and c["distance_miles"] > 1.0]
+    if expanded:
+        elements.append(Paragraph(
+            "* Comp located beyond 1 mile from subject (expanded search area).",
+            ss["SectionNote"]))
 
     elements.append(Paragraph(
         "Cite: Tex. Tax Code §23.01 — market value as of January 1.",
@@ -399,7 +422,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
     subj_psf = appraised / sqft if sqft > 0 else 0
 
     headers = ["Account", "Address", "Sqft", "Yr Built",
-               "Appraised", "$/Sqft", "Sale Price", "Sale Ratio"]
+               "Appraised", "$/Sqft", "Sale Price", "Sale Ratio", "Distance"]
     rows = [headers]
 
     # Subject row
@@ -414,22 +437,24 @@ def _page4_tier3(subject, comps, recommendation, ss):
         _psf(subj_psf),
         _dollar(subj_sale) if subj_sale else "—",
         _ratio(subj_ratio),
+        "—",
     ])
 
     for c in comps:
         rows.append([
             c["account_number"],
-            (c["situs_address"] or "")[:20],
+            (c["situs_address"] or "")[:18],
             f"{c['living_area_sqft']:,.0f}" if c.get("living_area_sqft") else "—",
             str(c["year_built"] or "N/A"),
             _dollar(c.get("appraised_value")),
             _psf(c.get("appr_psf")),
             _dollar(c.get("sale_price")) if c.get("sale_price") else "—",
             _ratio(c.get("sale_ratio")),
+            _dist(c.get("distance_miles")),
         ])
 
-    col_w = [0.7*inch, 1.55*inch, 0.55*inch, 0.55*inch,
-             0.9*inch, 0.7*inch, 0.9*inch, 0.7*inch]
+    col_w = [0.7*inch, 1.3*inch, 0.5*inch, 0.5*inch,
+             0.85*inch, 0.65*inch, 0.85*inch, 0.65*inch, 0.6*inch]
     tbl = Table(rows, colWidths=col_w)
     style_cmds = _table_style_base()
     # Bold + highlight subject row
@@ -462,6 +487,14 @@ def _page4_tier3(subject, comps, recommendation, ss):
         elements.append(Paragraph(
             f"<b>E&U suggested value: {_dollar(t3_val)}</b>", ss["Normal"]))
     elements.append(Spacer(1, 8))
+
+    # Flag expanded search area comps
+    expanded = [c for c in comps if c.get("distance_miles") is not None
+                and c["distance_miles"] > 1.0]
+    if expanded:
+        elements.append(Paragraph(
+            "* Comp located beyond 1 mile from subject (expanded search area).",
+            ss["SectionNote"]))
 
     elements.append(Paragraph(
         "Sale Ratio = Appraised Value / Sale Price. Ratio > 1.0 means EPCAD "
@@ -600,7 +633,11 @@ def _page6_how_to_use(ss, protest_year):
         "<b>Tier 1 — Closed Sales.</b> These are real properties near you that "
         "recently changed hands. The sale prices prove what buyers actually paid "
         "in your area. If those prices are lower than what EPCAD says your home "
-        "is worth, EPCAD's number is too high. This is your strongest argument.",
+        "is worth, EPCAD's number is too high. This is your strongest argument. "
+        "<b>Comps within 0.5 miles carry the most weight with ARB panels</b> "
+        "because they share your neighborhood conditions. The Distance column "
+        "shows how far each comp is from your property. Comps marked with an "
+        "asterisk (*) are from an expanded search area beyond 1 mile.",
         body))
     elements.append(Paragraph(
         "<b>Tier 2 — Active Listings.</b> These are homes for sale right now. "
@@ -613,7 +650,8 @@ def _page6_how_to_use(ss, protest_year):
         "them. Texas law says similar homes must be taxed similarly. If your "
         "neighbors' assessed values are lower per square foot than yours, "
         "your assessment is unfair. The \"% above median\" number is key — "
-        "the higher it is, the stronger your case.",
+        "the higher it is, the stronger your case. As with Tier 1, nearby "
+        "comps (within 0.5 miles) are the most persuasive to ARB panels.",
         body))
     elements.append(Spacer(1, 8))
 
