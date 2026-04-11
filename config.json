@@ -10,7 +10,7 @@
   },
   "tier1_filters": {
     "sqft_tolerance_pct": 0.25,
-    "age_tolerance_years": 15,
+    "age_tolerance_years": 10,
     "lot_tolerance_pct": 0.40,
     "sale_window_months": 12,
     "min_comps_before_zip_expansion": 3

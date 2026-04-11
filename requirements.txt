@@ -3,5 +3,6 @@ pandas
 httpx
 pdfplumber
 flask
+folium
 gunicorn
 streamlit

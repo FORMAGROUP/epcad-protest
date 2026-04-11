@@ -162,7 +162,7 @@ def tier1_closed_sales(conn, subject, config):
     """
     cfg = config.get("tier1_filters", {})
     sqft_tol = cfg.get("sqft_tolerance_pct", 0.25)
-    age_tol = cfg.get("age_tolerance_years", 15)
+    age_tol = cfg.get("age_tolerance_years", 10)
     lot_tol = cfg.get("lot_tolerance_pct", 0.40)
     sale_months = cfg.get("sale_window_months", 12)
     min_comps = cfg.get("min_comps_before_zip_expansion", 3)
@@ -245,13 +245,33 @@ def tier1_closed_sales(conn, subject, config):
         adjacent = [str(z) for z in range(zip_int - 2, zip_int + 3) if z != zip_int]
         comps = _query_zip([subj_zip] + adjacent)
 
-    # Apply year-built filter (soft — don't exclude if we're already thin)
+    # Tighten sqft to ±15% if enough comps remain (soft upgrade)
+    if subj_sqft and len(comps) > min_comps:
+        tight_lo = subj_sqft * 0.85
+        tight_hi = subj_sqft * 1.15
+        tight = [c for c in comps
+                 if c["living_area_sqft"] is not None
+                 and tight_lo <= c["living_area_sqft"] <= tight_hi]
+        if len(tight) >= min_comps:
+            comps = tight
+
+    # Apply year-built filter (±10 years, soft — don't exclude if already thin)
     if subj_year and len(comps) > min_comps:
         filtered = [c for c in comps
                     if c["year_built"] is None
                     or abs(c["year_built"] - subj_year) <= age_tol]
         if len(filtered) >= min_comps:
             comps = filtered
+
+    # Prefer sales within last 6 months (soft — keep older if thin)
+    if len(comps) > min_comps:
+        recent_cutoff = f"{year}-01-01" if year else None
+        # 6 months before Jan 1 of protest year = July 1 of prior year
+        recent_cutoff = f"{year - 1}-07-01"
+        recent = [c for c in comps
+                  if c.get("sale_date") and c["sale_date"] >= recent_cutoff]
+        if len(recent) >= min_comps:
+            comps = recent
 
     # Apply lot size filter (soft)
     if subj_lot and subj_lot > 0 and len(comps) > min_comps:
@@ -313,9 +333,12 @@ def tier1_closed_sales(conn, subject, config):
             score += abs(comp["year_built"] - subj_year) / 30
         if subj_lot and comp["lot_size_sqft"] and subj_lot > 0:
             score += abs(comp["lot_size_sqft"] - subj_lot) / subj_lot * 0.5
-        # Prefer more recent sales
+        # Prefer more recent sales (stronger weight)
         if comp["sale_date"]:
-            score += 0.1 if comp["sale_date"] < f"{year - 1}-06-01" else 0
+            if comp["sale_date"] < f"{year - 1}-07-01":
+                score += 0.2  # older than 6 months
+            elif comp["sale_date"] < f"{year - 1}-01-01":
+                score += 0.1  # 6-12 months old
         return score
 
     comps.sort(key=proximity_score)
