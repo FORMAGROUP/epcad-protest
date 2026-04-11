@@ -204,7 +204,7 @@ col_addr, col_zip, col_btn = st.columns([3, 1, 1])
 with col_addr:
     address_input = st.text_input(
         "Street Address",
-        placeholder="705 Twin Hills Dr",
+        placeholder="Your street address",
         label_visibility="collapsed",
     )
 with col_zip:
@@ -217,7 +217,7 @@ with col_zip:
 with col_btn:
     run_btn = st.button("Analyze", type="primary", use_container_width=True)
 
-st.caption("Example: **705 Twin Hills Dr** — ZIP **79912**")
+st.caption("Example: **123 Main St** — ZIP **79912**")
 
 # ---------------------------------------------------------------------------
 # Run analysis
