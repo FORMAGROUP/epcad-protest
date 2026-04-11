@@ -26,8 +26,7 @@
     display:flex; align-items:center; justify-content:space-between;
     box-shadow:0 2px 20px rgba(0,0,0,0.3);
   }
-  .logo { font-family:'Bodoni Moda',serif; font-size:1.4rem; font-weight:900; color:white; cursor:pointer; text-decoration:none; }
-  .logo span { color:var(--gold); }
+  .logo { display:none; }
   .header-deadline { font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(255,255,255,0.45); }
   .header-deadline strong { color:var(--gold); }
 
@@ -326,7 +325,7 @@
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="goHome()"><img src="/static/logo.svg" style="height:32px;width:auto;vertical-align:middle;"><span style="font-family:'Bodoni Moda',serif;font-size:1.4rem;font-weight:900;color:white;letter-spacing:-0.5px;">Valu<span style="color:#C8920A;">Check</span></span></div>
+  <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="goHome()"><img src="/static/logo.svg" style="height:32px;width:auto;vertical-align:middle;"><span style="font-family:'Bodoni Moda',serif;font-size:1.4rem;font-weight:900;color:white;letter-spacing:-0.5px;white-space:nowrap;word-spacing:0;">Valu<span style="color:#C8920A;">Check</span></span></div>
   <div class="header-deadline">Deadline: <strong>May 15, 2026</strong></div>
 </header>
 
