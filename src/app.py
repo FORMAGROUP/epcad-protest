@@ -105,10 +105,7 @@ st.markdown(f"""
     }}
     section[data-testid="stSidebar"] .stExpander {{
         border-color: {GRAY_BORDER} !important;
-    }}
-    section[data-testid="stSidebar"] .stExpander summary span {{
-        color: {GOLD} !important;
-        font-weight: 600;
+        background: transparent !important;
     }}
     section[data-testid="stSidebar"] hr {{
         border-color: {GRAY_BORDER};
@@ -481,7 +478,7 @@ with st.sidebar:
     </div>
     <div style="font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: {GRAY_TEXT};
                 margin-bottom: 1rem;">
-        El Paso Property Tax Protest Tool
+        El Paso's property tax protest tool.
     </div>
     """, unsafe_allow_html=True)
 
@@ -517,22 +514,22 @@ with st.sidebar:
     st.subheader("FAQ")
 
     with st.expander("Can EPCAD raise my value if I protest?"):
-        st.markdown(
-            "No. By law, the Appraisal Review Board can only **lower or keep** "
+        st.write(
+            "No. By law, the Appraisal Review Board can only lower or keep "
             "your value the same during a protest. They cannot raise it. "
             "There is zero risk to filing."
         )
 
     with st.expander("What happens if I lose at the ARB?"):
-        st.markdown(
+        st.write(
             "Your value stays the same as EPCAD originally set it. You can then "
-            "appeal to **binding arbitration** (for homes under $5M) or to "
-            "**district court** within 60 days. Binding arbitration costs $550 "
+            "appeal to binding arbitration (for homes under $5M) or to "
+            "district court within 60 days. Binding arbitration costs $550 "
             "and is decided by a third-party arbitrator -- no lawyer needed."
         )
 
     with st.expander("Do I need a lawyer or tax agent?"):
-        st.markdown(
+        st.write(
             "No. Most homeowners represent themselves. The ARB hearing is "
             "informal -- you sit at a table, present your evidence, and answer "
             "questions. This tool generates the same kind of comp grid that "
@@ -540,16 +537,30 @@ with st.sidebar:
         )
 
     with st.expander("What should I bring to the hearing?"):
-        st.markdown(
-            "1. **2 printed copies** of your protest PDF (one for you, one for "
-            "the panel)\n"
-            "2. Your **appraisal notice** (the letter EPCAD mailed you)\n"
-            "3. **Photos** of any condition issues (roof damage, foundation "
-            "cracks, outdated interior)\n"
-            "4. A **recent appraisal** if you have one (triggers the "
-            "'clear and convincing' evidence standard if filed 14 days early)\n"
-            "5. Your **ID** (driver's license)"
+        st.write(
+            "1. Two printed copies of your protest PDF\n"
+            "2. Your appraisal notice (the letter EPCAD mailed you)\n"
+            "3. Photos of any condition issues\n"
+            "4. A recent appraisal if you have one\n"
+            "5. Your ID (driver's license)"
         )
+
+    st.divider()
+
+    # Pricing section
+    st.markdown(f"""
+    <div style="font-family: 'Bodoni Moda', serif; font-size: 1.1rem; font-weight: 700;
+                color: {GOLD}; margin-bottom: 0.5rem;">
+        Get Your Full Report &mdash; $29.99
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(
+        "- 7-page ARB-ready PDF\n"
+        "- Instant download or email delivery\n"
+        "- One-time payment \u00b7 No subscription"
+    )
+    st.button("Get My Protest Packet", type="primary", use_container_width=True,
+              key="sidebar_buy")
 
     st.divider()
     st.caption(
