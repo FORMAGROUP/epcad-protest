@@ -1,0 +1,6 @@
+reportlab
+pandas
+httpx
+pdfplumber
+flask
+streamlit

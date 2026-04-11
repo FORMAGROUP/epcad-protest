@@ -1,0 +1,7 @@
+data/raw/
+output/*.pdf
+__pycache__/
+*.pyc
+.DS_Store
+data/redfin_listings.csv
+data/redfin_last_updated.txt
