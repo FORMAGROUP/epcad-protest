@@ -36,6 +36,16 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/sample")
+def sample_report():
+    """Serve the pre-generated sample protest report."""
+    sample_path = os.path.join(os.path.dirname(__file__), "static", "sample_report.pdf")
+    if not os.path.exists(sample_path):
+        return "Sample report not available.", 404
+    return send_file(sample_path, mimetype="application/pdf",
+                     download_name="ValuCheck_Sample_Report.pdf")
+
+
 ANALYZE_TIMEOUT = 110  # seconds — under gunicorn's 120s hard timeout
 
 
