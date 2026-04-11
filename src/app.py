@@ -427,6 +427,26 @@ st.markdown(f"""
         border-radius: 6px;
     }}
 
+    /* ---- Form submit buttons (gold) ---- */
+    .stForm button[kind="secondaryFormSubmit"],
+    button[data-testid="stBaseButton-secondaryFormSubmit"] {{
+        background: linear-gradient(135deg, {GOLD}, {GOLD_DARK}) !important;
+        color: {WHITE} !important;
+        border: none !important;
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        border-radius: 6px !important;
+        letter-spacing: 0.5px !important;
+        padding: 0.6rem 1.5rem !important;
+        transition: all 0.2s !important;
+    }}
+    .stForm button[kind="secondaryFormSubmit"]:hover,
+    button[data-testid="stBaseButton-secondaryFormSubmit"]:hover {{
+        background: linear-gradient(135deg, {GOLD_HOVER}, {GOLD}) !important;
+        box-shadow: 0 4px 15px rgba(200,146,10,0.3) !important;
+    }}
+
     /* ---- Spinner ---- */
     .stSpinner > div {{
         color: {GOLD} !important;
@@ -630,7 +650,7 @@ st.markdown(f"""
 <div style="text-align: center; margin-bottom: 1.5rem;">
     <div style="font-family: 'Bodoni Moda', serif; font-size: 2rem; font-weight: 700;
                 color: {WHITE}; margin-bottom: 0.3rem;">
-        Fight Your Property Tax Appraisal
+        Fight Your El Paso CAD Tax Bill. Win With Data.
     </div>
     <div style="font-family: 'DM Sans', sans-serif; font-size: 1rem; color: {GRAY_TEXT};">
         Enter your address to generate a three-tier evidence packet for your EPCAD protest hearing.
@@ -696,7 +716,7 @@ with col_btn:
 st.markdown(f"""
 <div style="font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: #5A7A99;
             margin-top: -0.5rem; margin-bottom: 1rem;">
-    Example: <strong style="color: {GRAY_TEXT};">705 Twin Hills Dr</strong>
+    Example: <strong style="color: {GRAY_TEXT};">123 Main St</strong>
     &nbsp;&mdash;&nbsp; ZIP <strong style="color: {GRAY_TEXT};">79912</strong>
 </div>
 """, unsafe_allow_html=True)
@@ -1004,32 +1024,30 @@ if "rec" in st.session_state and st.session_state.rec.get("recommended_value"):
                 else:
                     st.error("Please enter a valid email address.")
 
-# ---------------------------------------------------------------------------
-# Email capture (always visible)
-# ---------------------------------------------------------------------------
-st.divider()
-st.markdown(f"""
-<div style="text-align: center; margin-bottom: 0.8rem;">
-    <div style="font-family: 'Bodoni Moda', serif; font-size: 1.3rem; font-weight: 700;
-                color: {WHITE};">
-        Get Deadline Reminders
+    # ---- Get Deadline Reminders (results page only) ----
+    st.divider()
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 0.8rem;">
+        <div style="font-family: 'Bodoni Moda', serif; font-size: 1.3rem; font-weight: 700;
+                    color: {WHITE};">
+            Get Deadline Reminders
+        </div>
+        <div style="font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: {GRAY_TEXT};">
+            We'll remind you before the May 15 deadline and when new EPCAD data is available.
+        </div>
     </div>
-    <div style="font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: {GRAY_TEXT};">
-        We'll remind you before the May 15 deadline and when new EPCAD data is available.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-with st.form("email_form", clear_on_submit=True):
-    email = st.text_input("Email address", placeholder="you@example.com",
-                          label_visibility="collapsed")
-    submitted = st.form_submit_button("Sign Up", use_container_width=True)
-    if submitted:
-        if email and "@" in email and "." in email:
-            acct = st.session_state.get("subject", {}).get("account_number", "")
-            save_email(email.strip(), acct)
-            st.success(
-                "You're signed up! We'll send reminders before the May 15 deadline."
-            )
-        else:
-            st.error("Please enter a valid email address.")
+    with st.form("email_form", clear_on_submit=True):
+        email = st.text_input("Email address", placeholder="you@example.com",
+                              label_visibility="collapsed")
+        submitted = st.form_submit_button("Sign Up", use_container_width=True)
+        if submitted:
+            if email and "@" in email and "." in email:
+                acct = st.session_state.get("subject", {}).get("account_number", "")
+                save_email(email.strip(), acct)
+                st.success(
+                    "You're signed up! We'll send reminders before the May 15 deadline."
+                )
+            else:
+                st.error("Please enter a valid email address.")
