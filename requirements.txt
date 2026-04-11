@@ -3,4 +3,5 @@ pandas
 httpx
 pdfplumber
 flask
+gunicorn
 streamlit
