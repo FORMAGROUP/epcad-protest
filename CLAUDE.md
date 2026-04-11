@@ -400,6 +400,25 @@ Include these citations in the PDF footer and cover letter:
 
 ---
 
+## Legal Reference Documents
+
+Official EPCAD ARB documents stored in `data/legal/`:
+
+- **`2026_Full_ARB_Rules_Procedures.pdf`** — Complete rules and procedures
+  governing Appraisal Review Board hearings. Covers hearing conduct,
+  evidence standards, burden of proof, and appeal rights.
+- **`2026_Taxpayer_Information.pdf`** — EPCAD's taxpayer guide explaining
+  the protest process, deadlines, and homeowner rights under Texas Tax Code.
+- **`2026_ARB_Taxpayer_Packet.pdf`** — The full packet EPCAD provides to
+  taxpayers for ARB hearings, including Form 50-132 (Notice of Protest)
+  and supporting instructions.
+
+These documents are the authoritative source for protest procedures and
+should be referenced when questions arise about hearing rules or filing
+requirements.
+
+---
+
 ## Phase 2 (Future): Web UI
 
 Simple Flask app with:
