@@ -522,6 +522,30 @@
         <div class="cta-trust-item">EPCAD public data</div>
       </div>
     </div>
+
+    <div style="text-align:center;margin-top:1.5rem;">
+      <button onclick="betaDownload()" style="
+        background:transparent;
+        color:rgba(255,255,255,0.55);
+        border:1px solid rgba(255,255,255,0.15);
+        padding:0.8rem 2rem;
+        border-radius:10px;
+        font-family:'Lato',sans-serif;
+        font-size:0.9rem;
+        font-weight:600;
+        cursor:pointer;
+        transition:border-color 0.2s, color 0.2s;
+        width:100%;
+        max-width:400px;
+      " onmouseover="this.style.borderColor='rgba(255,255,255,0.35)';this.style.color='rgba(255,255,255,0.8)'"
+         onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.55)'">
+        Beta Access &mdash; Download Free
+      </button>
+      <div style="font-size:0.68rem;color:rgba(255,255,255,0.25);margin-top:0.5rem;">
+        Limited time &middot; No payment required
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -720,6 +744,11 @@
   function closeModal() {
     document.getElementById('modal-overlay').classList.remove('visible');
     document.body.style.overflow = '';
+  }
+
+  function betaDownload() {
+    if (!currentResult || !currentResult.pdf_id) return;
+    window.location.href = '/report/' + currentResult.pdf_id;
   }
 
   async function processPayment() {
