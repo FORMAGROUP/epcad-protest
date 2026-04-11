@@ -200,10 +200,15 @@ with hw3:
 
 st.divider()
 
+# Check for ?address= query parameter to auto-populate and auto-run
+qp = st.query_params
+qp_address = qp.get("address", "")
+
 col_addr, col_zip, col_btn = st.columns([3, 1, 1])
 with col_addr:
     address_input = st.text_input(
         "Street Address",
+        value=qp_address,
         placeholder="Your street address",
         label_visibility="collapsed",
     )
@@ -218,6 +223,11 @@ with col_btn:
     run_btn = st.button("Analyze", type="primary", use_container_width=True)
 
 st.caption("Example: **123 Main St** — ZIP **79912**")
+
+# Auto-run on first load if address came from URL query param
+if qp_address and "qp_auto_ran" not in st.session_state:
+    st.session_state.qp_auto_ran = True
+    run_btn = True
 
 # ---------------------------------------------------------------------------
 # Run analysis
