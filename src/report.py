@@ -1,7 +1,6 @@
 """Generate 7-page PDF protest packet using reportlab."""
 
 import os
-import tempfile
 from datetime import date
 
 from utils import haversine_miles
@@ -9,7 +8,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image,
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak,
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -740,173 +739,115 @@ def _page6_how_to_use(ss, protest_year):
     return elements
 
 
-def _page7_map(subject, tier1_comps, tier3_comps, ss):
-    """Page 7: Neighborhood map showing subject and all comps with distances."""
+def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
+    """Page 7: Proximity analysis — distance table for all comps."""
     elements = []
     elements.append(Paragraph(
-        "NEIGHBORHOOD MAP — SUBJECT & COMPARABLE PROPERTIES", ss["TierHeader"]))
-    elements.append(Spacer(1, 8))
+        "COMPARABLE PROPERTIES — PROXIMITY ANALYSIS", ss["TierHeader"]))
+    elements.append(Spacer(1, 10))
 
-    subj_lat = subject.get("latitude")
-    subj_lng = subject.get("longitude")
-
-    if subj_lat is None or subj_lng is None:
-        elements.append(Paragraph(
-            "Map unavailable — subject property coordinates not found.",
-            ss["Normal"]))
-        return elements
-
-    try:
-        import folium
-    except ImportError:
-        elements.append(Paragraph(
-            "Map unavailable — folium library not installed.", ss["Normal"]))
-        return elements
-
-    try:
-        import selenium  # noqa: F401 — needed by folium png export
-        _has_selenium = True
-    except ImportError:
-        _has_selenium = False
-
-    # Collect all comp points
+    # Collect all comp entries
     all_comps = []
     for c in (tier1_comps or []):
-        lat, lng = c.get("latitude"), c.get("longitude")
-        if lat and lng:
-            dist = c.get("distance_miles")
-            all_comps.append({
-                "lat": lat, "lng": lng,
-                "label": (c.get("situs_address") or "")[:30],
-                "tier": "Tier 1",
-                "dist": f"{dist:.2f} mi" if dist is not None else "",
-                "color": "green",
-            })
+        dist = c.get("distance_miles")
+        all_comps.append({
+            "address": (c.get("situs_address") or "")[:30],
+            "account": c.get("account_number", ""),
+            "tier": "Tier 1",
+            "dist": dist,
+            "dist_fmt": f"{dist:.2f} mi" if dist is not None else "—",
+        })
     for c in (tier3_comps or []):
-        lat, lng = c.get("latitude"), c.get("longitude")
-        if lat and lng:
-            dist = c.get("distance_miles")
-            all_comps.append({
-                "lat": lat, "lng": lng,
-                "label": (c.get("situs_address") or "")[:30],
-                "tier": "Tier 3",
-                "dist": f"{dist:.2f} mi" if dist is not None else "",
-                "color": "blue",
-            })
+        dist = c.get("distance_miles")
+        # Skip duplicates already in Tier 1
+        acct = c.get("account_number", "")
+        if any(x["account"] == acct for x in all_comps):
+            continue
+        all_comps.append({
+            "address": (c.get("situs_address") or "")[:30],
+            "account": acct,
+            "tier": "Tier 3",
+            "dist": dist,
+            "dist_fmt": f"{dist:.2f} mi" if dist is not None else "—",
+        })
 
     if not all_comps:
         elements.append(Paragraph(
-            "Map unavailable — no comparable properties have coordinates.",
+            "No comparable properties with distance data available.",
             ss["Normal"]))
         return elements
 
-    # Build folium map
-    m = folium.Map(location=[subj_lat, subj_lng], zoom_start=15,
-                   tiles="CartoDB positron", width=680, height=500)
+    # Sort by distance (closest first)
+    all_comps.sort(key=lambda x: x["dist"] if x["dist"] is not None else 999)
 
-    # Subject marker (red, prominent)
-    folium.Marker(
-        [subj_lat, subj_lng],
-        popup=f"SUBJECT: {subject.get('situs_address', '')}",
-        tooltip="SUBJECT",
-        icon=folium.Icon(color="red", icon="home", prefix="fa"),
-    ).add_to(m)
+    # Summary counts
+    within_half = sum(1 for c in all_comps
+                      if c["dist"] is not None and c["dist"] <= 0.5)
+    within_one = sum(1 for c in all_comps
+                     if c["dist"] is not None and c["dist"] <= 1.0)
+    total = len(all_comps)
 
-    # Distance circles
-    folium.Circle(
-        [subj_lat, subj_lng], radius=804.672,  # 0.5 miles in meters
-        color="#C8920A", fill=False, weight=1.5, dash_array="5,5",
-        tooltip="0.5 mile radius",
-    ).add_to(m)
-    folium.Circle(
-        [subj_lat, subj_lng], radius=1609.344,  # 1.0 mile in meters
-        color="#666666", fill=False, weight=1, dash_array="8,4",
-        tooltip="1.0 mile radius",
-    ).add_to(m)
-
-    # Comp markers
-    for comp in all_comps:
-        folium.Marker(
-            [comp["lat"], comp["lng"]],
-            popup=f"{comp['tier']}: {comp['label']} ({comp['dist']})",
-            tooltip=f"{comp['label']} — {comp['dist']}",
-            icon=folium.Icon(color=comp["color"], icon="info-sign"),
-        ).add_to(m)
-
-    # Save map as HTML alongside the PDF output, and in tmp as fallback
-    map_html_path = os.path.join(tempfile.gettempdir(), "valucheck_map.html")
-    m.save(map_html_path)
-    # Also save next to wherever the PDF will land
-    _map_html_path_for_pdf = map_html_path  # stored for later copy
-
-    # Try to capture as image using selenium (optional)
-    map_embedded = False
-    if _has_selenium:
-        try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.options import Options
-            png_path = os.path.join(tempfile.gettempdir(), "valucheck_map.png")
-            opts = Options()
-            opts.add_argument("--headless")
-            opts.add_argument("--no-sandbox")
-            opts.add_argument("--window-size=720,540")
-            driver = webdriver.Chrome(options=opts)
-            driver.get(f"file://{map_html_path}")
-            import time
-            time.sleep(2)
-            driver.save_screenshot(png_path)
-            driver.quit()
-            if os.path.exists(png_path):
-                img = Image(png_path, width=6.5 * inch, height=4.8 * inch)
-                elements.append(img)
-                elements.append(Spacer(1, 8))
-                map_embedded = True
-        except Exception:
-            pass
-
-    if not map_embedded:
-        # Fallback: embed a text summary with the map file reference
-        elements.append(Paragraph(
-            "An interactive neighborhood map has been generated alongside this PDF. "
-            f"Open <b>valucheck_map.html</b> in any web browser to view the full "
-            "interactive map with all comparable properties plotted.",
-            ss["Normal"]))
-        elements.append(Spacer(1, 8))
-
-    # Legend
     elements.append(Paragraph(
-        "<b>Map Legend:</b> "
-        '<font color="red">&#9679;</font> Subject Property &nbsp;&nbsp; '
-        '<font color="green">&#9679;</font> Tier 1 — Closed Sales &nbsp;&nbsp; '
-        '<font color="blue">&#9679;</font> Tier 3 — Equal &amp; Uniform &nbsp;&nbsp; '
-        '<font color="#C8920A">- - -</font> 0.5 mile radius &nbsp;&nbsp; '
-        '<font color="gray">- - -</font> 1.0 mile radius',
+        f"<b>{total}</b> comparable properties analyzed. "
+        f"<b>{within_half}</b> within 0.5 miles, "
+        f"<b>{within_one}</b> within 1.0 mile.",
         ss["Normal"]))
-    elements.append(Spacer(1, 8))
+    elements.append(Spacer(1, 10))
 
-    # Comp distance summary table
-    dist_headers = ["Property", "Tier", "Distance"]
+    # Distance table
+    dist_headers = ["Property", "Account", "Tier", "Distance"]
     dist_rows = [dist_headers]
-    dist_rows.append([subject.get("situs_address", "")[:28], "Subject", "—"])
-    for comp in all_comps:
-        dist_rows.append([comp["label"], comp["tier"], comp["dist"]])
 
-    if len(dist_rows) > 1:
-        dt = Table(dist_rows, colWidths=[3.2 * inch, 1.0 * inch, 1.0 * inch])
-        ds = _table_style_base()
-        # Bold subject row
-        ds.append(("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"))
-        ds.append(("BACKGROUND", (0, 1), (-1, 1), MED_GRAY))
-        _alt_row_shading(ds, len(dist_rows) - 2, start_row=2)
-        ds.append(("ALIGN", (0, 0), (0, -1), "LEFT"))
-        dt.setStyle(TableStyle(ds))
-        elements.append(dt)
-        elements.append(Spacer(1, 8))
+    # Subject row
+    dist_rows.append([
+        (subject.get("situs_address") or "")[:30],
+        subject.get("account_number", ""),
+        "Subject",
+        "—",
+    ])
+
+    for comp in all_comps:
+        label = comp["dist_fmt"]
+        if comp["dist"] is not None and comp["dist"] > 1.0:
+            label += " *"
+        dist_rows.append([
+            comp["address"],
+            comp["account"],
+            comp["tier"],
+            label,
+        ])
+
+    dt = Table(dist_rows,
+               colWidths=[2.8 * inch, 1.0 * inch, 0.8 * inch, 0.9 * inch])
+    ds = _table_style_base()
+    ds.append(("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"))
+    ds.append(("BACKGROUND", (0, 1), (-1, 1), MED_GRAY))
+    _alt_row_shading(ds, len(dist_rows) - 2, start_row=2)
+    ds.append(("ALIGN", (0, 0), (0, -1), "LEFT"))
+    ds.append(("ALIGN", (1, 0), (1, -1), "LEFT"))
+    dt.setStyle(TableStyle(ds))
+    elements.append(dt)
+    elements.append(Spacer(1, 10))
+
+    # Expanded search area note
+    expanded = [c for c in all_comps
+                if c["dist"] is not None and c["dist"] > 1.0]
+    if expanded:
+        elements.append(Paragraph(
+            f"* {len(expanded)} comp(s) located beyond 1 mile "
+            "(expanded search area).", ss["SectionNote"]))
 
     elements.append(Paragraph(
-        "Comps within 0.5 miles carry the most weight with ARB panels. "
-        "Distance is calculated as straight-line (Haversine) from subject "
-        "property centroid.", ss["SectionNote"]))
+        "<b>Comps within 0.5 miles carry the most weight with ARB panels.</b> "
+        "Closer comps share the same neighborhood conditions — road access, "
+        "school zones, and local amenities — making them the most persuasive "
+        "evidence of market value and assessment equity.",
+        ss["Normal"]))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph(
+        "Distance is calculated as straight-line (Haversine formula) from "
+        "subject property to each comparable. Actual driving distance may be "
+        "greater.", ss["SectionNote"]))
 
     return elements
 
@@ -964,19 +905,11 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     elements += _page6_how_to_use(ss, protest_year)
     elements.append(PageBreak())
 
-    # Page 7 — Neighborhood map
-    elements += _page7_map(subject, tier1_comps, tier3_comps, ss)
+    # Page 7 — Proximity analysis
+    elements += _page7_proximity(subject, tier1_comps, tier3_comps, ss)
 
     def _on_page(canvas, doc_obj):
         _footer(canvas, doc_obj, acct, protest_year)
 
     doc.build(elements, onFirstPage=_on_page, onLaterPages=_on_page)
-
-    # Copy the interactive map HTML next to the PDF
-    map_src = os.path.join(tempfile.gettempdir(), "valucheck_map.html")
-    if os.path.exists(map_src):
-        import shutil
-        map_dest = output_path.replace(".pdf", "_map.html")
-        shutil.copy2(map_src, map_dest)
-
     return output_path
