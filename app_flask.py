@@ -7,6 +7,7 @@ import tempfile
 import threading
 import uuid
 
+import stripe
 from flask import Flask, request, jsonify, send_file, render_template
 
 # Ensure src/ imports work
@@ -18,6 +19,9 @@ from scorer import adjust_tier1, final_recommendation
 from report import generate_pdf
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
+
+# Stripe configuration
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 # Store generated PDFs in /tmp keyed by a random ID
 PDF_DIR = os.path.join(tempfile.gettempdir(), "valucheck_pdfs")
@@ -193,7 +197,7 @@ def analyze():
 
 @app.route("/checkout", methods=["POST"])
 def checkout():
-    """Stripe payment placeholder. Returns a mock success for now."""
+    """Create a Stripe Checkout Session for $29.99."""
     data = request.get_json(force=True)
     pdf_id = data.get("pdf_id", "")
     email = data.get("email", "")
@@ -203,15 +207,49 @@ def checkout():
     if not os.path.exists(pdf_path):
         return jsonify({"error": "Report not found. Please run analysis again."}), 404
 
-    # TODO: Integrate Stripe payment here
-    # For now, return success with the download URL
-    return jsonify({
-        "success": True,
-        "message": "Payment placeholder — Stripe integration coming soon.",
-        "download_url": f"/report/{pdf_id}",
-        "delivery": delivery,
-        "email": email,
-    })
+    if not stripe.api_key:
+        return jsonify({"error": "Payment not configured. Contact support."}), 500
+
+    # Build URLs
+    base_url = request.host_url.rstrip("/")
+    success_url = f"{base_url}/report/{pdf_id}"
+    cancel_url = f"{base_url}/"
+
+    try:
+        session_params = {
+            "payment_method_types": ["card"],
+            "line_items": [{
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": 2999,  # $29.99 in cents
+                    "product_data": {
+                        "name": "ValuCheck Protest Packet",
+                        "description": "7-page ARB-ready property tax protest PDF",
+                    },
+                },
+                "quantity": 1,
+            }],
+            "mode": "payment",
+            "success_url": success_url,
+            "cancel_url": cancel_url,
+            "metadata": {
+                "pdf_id": pdf_id,
+                "delivery": delivery,
+            },
+        }
+
+        # Pre-fill email if provided
+        if email:
+            session_params["customer_email"] = email
+
+        session = stripe.checkout.Session.create(**session_params)
+
+        return jsonify({
+            "checkout_url": session.url,
+            "session_id": session.id,
+        })
+    except stripe.error.StripeError as e:
+        return jsonify({"error": f"Payment error: {str(e)}"}), 500
 
 
 @app.route("/report/<pdf_id>")

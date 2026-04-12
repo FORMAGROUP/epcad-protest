@@ -5,4 +5,5 @@ pdfplumber
 flask
 folium
 gunicorn
+stripe
 streamlit

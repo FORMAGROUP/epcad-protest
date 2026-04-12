@@ -587,14 +587,8 @@
         <div class="modal-price">$29.99</div>
       </div>
       <div class="modal-field"><label>Email Address <span id="email-note" style="color:var(--gold);font-size:0.65rem;letter-spacing:0;text-transform:none;font-weight:400;"></span></label><input type="email" id="modal-email" placeholder="you@email.com" /></div>
-      <div class="modal-field"><label>Name on Card</label><input type="text" placeholder="Full name" /></div>
-      <div class="modal-field"><label>Card Number</label><input type="text" placeholder="1234 5678 9012 3456" maxlength="19" /></div>
-      <div class="modal-field-row">
-        <div class="modal-field"><label>Expiry</label><input type="text" placeholder="MM / YY" maxlength="7" /></div>
-        <div class="modal-field"><label>CVC</label><input type="text" placeholder="123" maxlength="4" /></div>
-      </div>
-      <button class="pay-btn" onclick="processPayment()">Pay $29.99 &amp; Download PDF</button>
-      <div class="modal-trust">Secure checkout &middot; Instant download &middot; Results may vary</div>
+      <button class="pay-btn" id="stripe-pay-btn" onclick="processPayment()" style="background:var(--gold);color:var(--navy);margin-top:0.75rem;">Pay $29.99 with Stripe &rarr;</button>
+      <div class="modal-trust" id="modal-trust-text">Secure Stripe checkout &middot; Instant download &middot; Results may vary</div>
     </div>
   </div>
 </div>
@@ -778,6 +772,10 @@
   async function processPayment() {
     if (!currentResult) return;
     var email = document.getElementById('modal-email').value;
+    var btn = document.getElementById('stripe-pay-btn');
+
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to Stripe...';
 
     try {
       var resp = await fetch('/checkout', {
@@ -791,17 +789,17 @@
       });
       var data = await resp.json();
 
-      if (data.success && deliveryMode === 'download') {
-        window.location.href = data.download_url;
-      } else if (data.success && deliveryMode === 'email') {
-        alert('Payment successful! Your report will be emailed to ' + (email || 'your address') + ' shortly.');
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+        return;
       } else {
         alert(data.error || 'Payment failed. Please try again.');
       }
     } catch (e) {
       alert('Network error. Please try again.');
     }
-    closeModal();
+    btn.disabled = false;
+    btn.textContent = 'Pay $29.99 with Stripe \u2192';
   }
 
   document.getElementById('modal-overlay').addEventListener('click', function(e) {
