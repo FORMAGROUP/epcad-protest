@@ -17,7 +17,7 @@ from listings import fetch_and_store, find_tier2_comps
 from scorer import adjust_tier1, final_recommendation
 from report import generate_pdf
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # Store generated PDFs in /tmp keyed by a random ID
 PDF_DIR = os.path.join(tempfile.gettempdir(), "valucheck_pdfs")
