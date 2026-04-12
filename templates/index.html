@@ -194,8 +194,8 @@
   #result-view { display:none; min-height:100vh; background:var(--navy); padding-top:60px; }
   .result-inner { max-width:620px; margin:0 auto; padding:2.5rem 1.5rem 5rem; }
 
-  .back-btn { background:none; border:none; color:rgba(255,255,255,0.45); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; gap:0.4rem; margin-bottom:2rem; padding:0; transition:color 0.2s; }
-  .back-btn:hover { color:rgba(255,255,255,0.8); }
+  .back-btn { background:none; border:1px solid rgba(255,255,255,0.25); color:rgba(255,255,255,0.65); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.5px; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:2rem; padding:0.55rem 1.1rem; border-radius:8px; transition:border-color 0.2s, color 0.2s, background 0.2s; }
+  .back-btn:hover { color:white; border-color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); }
 
   .found-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(26,122,74,0.2); border:1px solid rgba(26,122,74,0.4); color:#4ADE80; font-size:0.72rem; font-family:'DM Mono',monospace; letter-spacing:1px; padding:0.3rem 0.8rem; border-radius:100px; margin-bottom:0.9rem; }
   .result-addr-display { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(1.3rem,4vw,2rem); color:white; font-weight:400; line-height:1.2; margin-bottom:0.35rem; }
@@ -291,6 +291,16 @@
   .modal-trust { display:flex; align-items:center; justify-content:center; margin-top:0.75rem; font-size:0.7rem; color:var(--muted); text-align:center; }
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Scroll indicator */
+  .scroll-hint { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); text-align:center; z-index:50; animation:scrollFadeOut 3s ease forwards; pointer-events:none; }
+  .scroll-hint-arrow { font-size:1.4rem; color:rgba(255,255,255,0.5); animation:scrollBounce 1.2s ease infinite; }
+  .scroll-hint-text { font-family:'DM Mono',monospace; font-size:0.65rem; color:rgba(255,255,255,0.35); letter-spacing:0.5px; margin-top:0.15rem; }
+  @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+  @keyframes scrollFadeOut { 0%,60%{opacity:1} 100%{opacity:0} }
+
+  .sample-link { display:inline-block; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.5px; text-decoration:none; border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:0.5rem 1.1rem; transition:border-color 0.2s, color 0.2s; margin-bottom:1.25rem; }
+  .sample-link:hover { color:var(--gold); border-color:var(--gold); }
   .hero h1 { animation:fadeUp 0.5s ease both; }
   .hero-sub { animation:fadeUp 0.5s 0.1s ease both; }
 
@@ -523,6 +533,10 @@
       <div class="preview-fade"></div>
     </div>
 
+    <div style="text-align:center;margin-bottom:0.5rem;">
+      <a href="/sample" target="_blank" class="sample-link">View Sample Report &rarr;</a>
+    </div>
+
     <div class="cta-block">
       <div class="cta-top">Your complete protest packet is ready.</div>
       <div class="cta-headline">Get the full 7-page ARB packet<br>and fight your tax bill today.</div>
@@ -570,6 +584,10 @@
       </div>
     </div>
 
+  </div>
+  <div class="scroll-hint" id="scroll-hint">
+    <div class="scroll-hint-arrow">&darr;</div>
+    <div class="scroll-hint-text">Scroll to see your results</div>
   </div>
 </div>
 
@@ -725,6 +743,13 @@
     document.getElementById('search-view').style.display = 'none';
     document.getElementById('result-view').style.display = 'block';
     window.scrollTo({top: 0, behavior: 'smooth'});
+
+    // Show scroll hint on mobile, auto-remove after animation
+    var hint = document.getElementById('scroll-hint');
+    if (hint) {
+      hint.style.display = 'block';
+      setTimeout(function() { hint.style.display = 'none'; }, 3200);
+    }
   }
 
   function goHome() {
