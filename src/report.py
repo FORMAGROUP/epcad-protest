@@ -96,12 +96,13 @@ def _footer(canvas, doc, account_number, protest_year):
     canvas.saveState()
     canvas.setFont("Helvetica", 7)
     canvas.setFillColor(colors.gray)
-    canvas.drawString(0.75 * inch, 0.45 * inch,
+    canvas.drawString(0.75 * inch, 0.55 * inch,
                       f"Source: EPCAD {protest_year} Appraisal Roll (public domain). "
-                      f"Prepared {date.today().isoformat()}. "
+                      f"Prepared {date.today().isoformat()}.")
+    canvas.drawString(0.75 * inch, 0.38 * inch,
                       "Texas is a non-disclosure state — sale prices reflect "
                       "EPCAD market value estimates, not recorded transaction prices.")
-    canvas.drawRightString(7.75 * inch, 0.45 * inch,
+    canvas.drawRightString(7.75 * inch, 0.55 * inch,
                            f"Account {account_number}  |  Page {doc.page}")
     canvas.restoreState()
 
@@ -699,7 +700,8 @@ def _page6_how_to_use(ss, protest_year):
         body))
     elements.append(Spacer(1, 8))
 
-    # Burden of proof
+    # Burden of proof — start on new page
+    elements.append(PageBreak())
     elements.append(Paragraph("BURDEN OF PROOF", bold))
     elements.append(Paragraph(
         "Under Texas Tax Code §41.43, <b>EPCAD must prove their value is "
@@ -730,11 +732,6 @@ def _page6_how_to_use(ss, protest_year):
     elements.append(Paragraph(
         "5. Your <b>photo ID</b> (driver's license).", body))
     elements.append(Spacer(1, 8))
-
-    elements.append(Paragraph(
-        "Remember: EPCAD cannot raise your value during a protest. The worst "
-        "outcome is your value stays the same. There is no risk to filing.",
-        bold))
 
     return elements
 
