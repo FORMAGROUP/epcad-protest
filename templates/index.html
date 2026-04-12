@@ -194,8 +194,8 @@
   #result-view { display:none; min-height:100vh; background:var(--navy); padding-top:60px; }
   .result-inner { max-width:620px; margin:0 auto; padding:2.5rem 1.5rem 5rem; }
 
-  .back-btn { background:none; border:1px solid rgba(255,255,255,0.25); color:rgba(255,255,255,0.65); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.5px; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:2rem; padding:0.55rem 1.1rem; border-radius:8px; transition:border-color 0.2s, color 0.2s, background 0.2s; }
-  .back-btn:hover { color:white; border-color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); }
+  .back-btn { background:#C8920A; border:none; color:#0B1F3A; font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:600; letter-spacing:0.5px; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:2rem; padding:0.55rem 1.1rem; border-radius:8px; transition:background 0.2s, transform 0.1s; }
+  .back-btn:hover { background:#E5A912; transform:translateY(-1px); }
 
   .found-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(26,122,74,0.2); border:1px solid rgba(26,122,74,0.4); color:#4ADE80; font-size:0.72rem; font-family:'DM Mono',monospace; letter-spacing:1px; padding:0.3rem 0.8rem; border-radius:100px; margin-bottom:0.9rem; }
   .result-addr-display { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(1.3rem,4vw,2rem); color:white; font-weight:400; line-height:1.2; margin-bottom:0.35rem; }
@@ -293,11 +293,12 @@
   @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
   /* Scroll indicator */
-  .scroll-hint { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); text-align:center; z-index:50; animation:scrollFadeOut 3s ease forwards; pointer-events:none; }
-  .scroll-hint-arrow { font-size:1.4rem; color:rgba(255,255,255,0.5); animation:scrollBounce 1.2s ease infinite; }
-  .scroll-hint-text { font-family:'DM Mono',monospace; font-size:0.65rem; color:rgba(255,255,255,0.35); letter-spacing:0.5px; margin-top:0.15rem; }
-  @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
-  @keyframes scrollFadeOut { 0%,60%{opacity:1} 100%{opacity:0} }
+  .scroll-hint { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); text-align:center; z-index:50; pointer-events:none; }
+  .scroll-hint.visible { display:block; animation:scrollFadeOut 4s ease forwards; }
+  .scroll-hint-arrow { font-size:1.6rem; color:#C8920A; animation:scrollBounce 1s ease infinite; }
+  .scroll-hint-text { font-family:'DM Mono',monospace; font-size:0.65rem; color:rgba(255,255,255,0.4); letter-spacing:0.5px; margin-top:0.15rem; }
+  @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+  @keyframes scrollFadeOut { 0%,65%{opacity:1} 100%{opacity:0} }
 
   .sample-link { display:inline-block; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.5px; text-decoration:none; border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:0.5rem 1.1rem; transition:border-color 0.2s, color 0.2s; margin-bottom:1.25rem; }
   .sample-link:hover { color:var(--gold); border-color:var(--gold); }
@@ -744,11 +745,11 @@
     document.getElementById('result-view').style.display = 'block';
     window.scrollTo({top: 0, behavior: 'smooth'});
 
-    // Show scroll hint on mobile, auto-remove after animation
+    // Show scroll hint, auto-remove after fade animation
     var hint = document.getElementById('scroll-hint');
     if (hint) {
-      hint.style.display = 'block';
-      setTimeout(function() { hint.style.display = 'none'; }, 3200);
+      hint.classList.add('visible');
+      setTimeout(function() { hint.classList.remove('visible'); }, 4200);
     }
   }
 
