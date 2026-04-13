@@ -14,10 +14,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-NAVY = colors.HexColor("#1a2744")
-LIGHT_GRAY = colors.HexColor("#f2f2f2")
+NAVY = colors.HexColor("#0B1F3A")
+GOLD = colors.HexColor("#C8920A")
+LIGHT_GRAY = colors.HexColor("#F2F4F8")
 MED_GRAY = colors.HexColor("#e0e0e0")
 WHITE = colors.white
+SAVINGS_GREEN = colors.HexColor("#1a7a2e")
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -54,7 +56,7 @@ def _dist(val):
 def _styles():
     ss = getSampleStyleSheet()
     ss.add(ParagraphStyle("TierHeader", parent=ss["Heading2"],
-                          textColor=WHITE, backColor=NAVY,
+                          textColor=GOLD, backColor=NAVY,
                           fontSize=13, leading=18, spaceAfter=6,
                           alignment=TA_LEFT, leftIndent=6, rightIndent=6))
     ss.add(ParagraphStyle("SectionNote", parent=ss["Normal"],
@@ -67,11 +69,20 @@ def _styles():
                           fontName="Helvetica-Bold"))
     ss.add(ParagraphStyle("SmallRight", parent=ss["Normal"],
                           fontSize=8, alignment=TA_RIGHT, textColor=colors.gray))
+    ss.add(ParagraphStyle("BigNumber", parent=ss["Normal"],
+                          fontSize=22, leading=28, fontName="Helvetica-Bold",
+                          textColor=NAVY, alignment=TA_CENTER))
+    ss.add(ParagraphStyle("BigNumberGreen", parent=ss["Normal"],
+                          fontSize=22, leading=28, fontName="Helvetica-Bold",
+                          textColor=SAVINGS_GREEN, alignment=TA_CENTER))
+    ss.add(ParagraphStyle("BigLabel", parent=ss["Normal"],
+                          fontSize=9, leading=12, textColor=colors.gray,
+                          alignment=TA_CENTER, spaceAfter=2))
     return ss
 
 
 def _table_style_base():
-    """Shared table style: header row navy, alternating shading."""
+    """Shared table style: navy header row, clean borders, alternating shading."""
     return [
         ("BACKGROUND", (0, 0), (-1, 0), NAVY),
         ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
@@ -80,7 +91,9 @@ def _table_style_base():
         ("FONTSIZE", (0, 0), (-1, 0), 8.5),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.4, colors.gray),
+        ("LINEBELOW", (0, 0), (-1, 0), 1.2, GOLD),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.5, MED_GRAY),
+        ("LINEAFTER", (0, 0), (-2, -1), 0.3, MED_GRAY),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]
@@ -93,17 +106,42 @@ def _alt_row_shading(style_cmds, num_data_rows, start_row=1):
 
 
 def _footer(canvas, doc, account_number, protest_year):
+    width, height = letter
     canvas.saveState()
+
+    # --- Gold top border stripe on every page ---
+    canvas.setStrokeColor(colors.HexColor("#C8920A"))
+    canvas.setLineWidth(3)
+    canvas.line(0, height - 3, width, height - 3)
+
+    # --- Footer separator line ---
+    canvas.setStrokeColor(colors.HexColor("#e0e0e0"))
+    canvas.setLineWidth(0.5)
+    canvas.line(0.65 * inch, 0.72 * inch, 7.85 * inch, 0.72 * inch)
+
+    # --- Footer line 1: ValuCheck branding left ---
+    canvas.setFont("Helvetica-Bold", 7.5)
+    canvas.setFillColor(colors.HexColor("#0B1F3A"))
+    canvas.drawString(0.75 * inch, 0.55 * inch, "Valu")
+    w = canvas.stringWidth("Valu", "Helvetica-Bold", 7.5)
+    canvas.setFillColor(colors.HexColor("#C8920A"))
+    canvas.drawString(0.75 * inch + w, 0.55 * inch, "Check")
+    w2 = canvas.stringWidth("Check", "Helvetica-Bold", 7.5)
     canvas.setFont("Helvetica", 7)
     canvas.setFillColor(colors.gray)
-    canvas.drawString(0.75 * inch, 0.55 * inch,
-                      f"Source: EPCAD {protest_year} Appraisal Roll (public domain). "
-                      f"Prepared {date.today().isoformat()}.")
+    canvas.drawString(0.75 * inch + w + w2 + 6, 0.55 * inch,
+                      f"  |  EPCAD {protest_year} Appraisal Roll  |  "
+                      f"Prepared {date.today().isoformat()}")
+
+    # --- Footer line 2: disclaimer left ---
     canvas.drawString(0.75 * inch, 0.38 * inch,
                       "Texas is a non-disclosure state — sale prices reflect "
                       "EPCAD market value estimates, not recorded transaction prices.")
-    canvas.drawRightString(7.75 * inch, 0.55 * inch,
+
+    # --- Page number right ---
+    canvas.drawRightString(7.85 * inch, 0.55 * inch,
                            f"Account {account_number}  |  Page {doc.page}")
+
     canvas.restoreState()
 
 
@@ -112,46 +150,106 @@ def _footer(canvas, doc, account_number, protest_year):
 # ---------------------------------------------------------------------------
 
 def _page1_summary(subject, recommendation, ss, protest_year):
-    """Page 1: Subject property summary + three-tier overview."""
+    """Page 1: ValuCheck branded summary with prominent key numbers."""
     elements = []
 
-    # Header bar
-    elements.append(Paragraph(
-        f"EPCAD PROPERTY TAX PROTEST — TAX YEAR {protest_year}", ss["TierHeader"]))
-    elements.append(Spacer(1, 12))
+    # --- ValuCheck header bar: address left, logo right ---
+    addr = f"{subject['situs_address'] or ''}, " \
+           f"{subject['situs_city'] or ''} {subject['situs_zip'] or ''}"
+    acct = subject["account_number"]
+    header_data = [[
+        Paragraph(
+            f"<font color='white' size='12'><b>{addr}</b></font><br/>"
+            f"<font color='#C8920A' size='9'>Account {acct}  |  "
+            f"Tax Year {protest_year}</font>",
+            ParagraphStyle("_hdrL", fontSize=12, leading=16, textColor=WHITE)),
+        Paragraph(
+            "<font color='white' size='16'><b>Valu</b></font>"
+            "<font color='#C8920A' size='16'><b>Check</b></font>",
+            ParagraphStyle("_hdrR", fontSize=16, leading=20,
+                           alignment=TA_RIGHT, textColor=WHITE)),
+    ]]
+    ht = Table(header_data, colWidths=[5.2 * inch, 2.0 * inch])
+    ht.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), NAVY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (0, -1), 10),
+        ("RIGHTPADDING", (-1, 0), (-1, -1), 10),
+    ]))
+    elements.append(ht)
+
+    # Gold accent line below header
+    gold_line = Table([[""]], colWidths=[7.2 * inch], rowHeights=[3])
+    gold_line.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), GOLD),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(gold_line)
+    elements.append(Spacer(1, 14))
 
     sqft = subject["living_area_sqft"] or 0
     appraised = subject["appraised_value"] or 0
     psf = appraised / sqft if sqft > 0 else 0
+    rec = recommendation
 
+    # --- Key numbers: large and bold, three columns ---
+    rec_val = rec["recommended_value"]
+    savings = rec["potential_savings"] or 0
+
+    key_data = [[
+        Paragraph("<font size='9' color='gray'>EPCAD APPRAISED</font>",
+                  ParagraphStyle("_kl", alignment=TA_CENTER, leading=12)),
+        Paragraph("<font size='9' color='gray'>RECOMMENDED VALUE</font>",
+                  ParagraphStyle("_kl", alignment=TA_CENTER, leading=12)),
+        Paragraph("<font size='9' color='gray'>POTENTIAL SAVINGS</font>",
+                  ParagraphStyle("_kl", alignment=TA_CENTER, leading=12)),
+    ], [
+        Paragraph(f"<b>{_dollar(appraised)}</b>", ss["BigNumber"]),
+        Paragraph(f"<b>{_dollar(rec_val)}</b>" if rec_val else "<b>N/A</b>",
+                  ss["BigNumber"]),
+        Paragraph(f"<b>{_dollar(savings)}</b>" if savings else "<b>—</b>",
+                  ss["BigNumberGreen"]),
+    ]]
+    kt = Table(key_data, colWidths=[2.4 * inch, 2.4 * inch, 2.4 * inch])
+    kt.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, 0), 8),
+        ("BOTTOMPADDING", (0, 1), (-1, 1), 8),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.5, MED_GRAY),
+    ]))
+    elements.append(kt)
+    elements.append(Spacer(1, 12))
+
+    # --- Property detail table (condensed) ---
     info = [
-        ["Account Number", subject["account_number"]],
-        ["Address", f"{subject['situs_address'] or ''}, "
-                    f"{subject['situs_city'] or ''} {subject['situs_zip'] or ''}"],
         ["Legal Description", (subject["legal_description"] or "")[:70]],
-        ["EPCAD Appraised Value", _dollar(appraised)],
         ["Living Area", f"{sqft:,.0f} sqft"],
         ["Year Built", str(subject["year_built"] or "N/A")],
         ["Lot Size", f"{subject['lot_size_sqft'] or 0:,.0f} sqft"],
         ["Assessed $/Sqft", _psf(psf)],
-        ["Neighborhood Code", subject["neighborhood_code"] or "N/A"],
+        ["Neighborhood", subject["neighborhood_code"] or "N/A"],
         ["State Class", subject["state_class_code"] or "N/A"],
     ]
-    t = Table(info, colWidths=[2.2 * inch, 5 * inch])
+    t = Table(info, colWidths=[1.8 * inch, 5.4 * inch])
     t.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("TEXTCOLOR", (0, 0), (0, -1), NAVY),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 2),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-        ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.gray),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.5, MED_GRAY),
     ]))
     elements.append(t)
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 14))
 
-    # Recommendation box
-    rec = recommendation
-    elements.append(Paragraph("THREE-TIER EVIDENCE SUMMARY", ss["Heading3"]))
+    # --- Three-tier evidence summary ---
+    elements.append(Paragraph(
+        "THREE-TIER EVIDENCE SUMMARY", ss["TierHeader"]))
     elements.append(Spacer(1, 4))
 
     summary_data = [
@@ -169,17 +267,12 @@ def _page1_summary(subject, recommendation, ss, protest_year):
     _alt_row_shading(style_cmds, 3)
     st.setStyle(TableStyle(style_cmds))
     elements.append(st)
-    elements.append(Spacer(1, 12))
-
-    if rec["recommended_value"]:
-        elements.append(Paragraph(
-            f"<b>RECOMMENDED PROTEST VALUE: {_dollar(rec['recommended_value'])}</b>"
-            f"&nbsp;&nbsp;(potential savings: {_dollar(rec['potential_savings'])})",
-            ss["Heading3"]))
-    elements.append(Spacer(1, 16))
+    elements.append(Spacer(1, 14))
 
     # Statutory references
-    elements.append(Paragraph("STATUTORY AUTHORITY", ss["Heading4"]))
+    elements.append(Paragraph(
+        "STATUTORY AUTHORITY", ss["TierHeader"]))
+    elements.append(Spacer(1, 4))
     refs = [
         "Tex. Tax Code §41.41 — Right of Protest (market value + equal & uniform)",
         "Tex. Tax Code §41.43 — Burden of proof on appraisal district",
@@ -190,7 +283,7 @@ def _page1_summary(subject, recommendation, ss, protest_year):
     ]
     for r in refs:
         elements.append(Paragraph(f"• {r}", ss["Normal"]))
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 10))
 
     elements.append(Paragraph(
         f"<b>DEADLINE:</b> File Form 50-132 by May 15, {protest_year} "
@@ -984,8 +1077,8 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     doc = SimpleDocTemplate(
         output_path,
         pagesize=letter,
-        topMargin=0.6 * inch,
-        bottomMargin=0.7 * inch,
+        topMargin=0.65 * inch,
+        bottomMargin=0.75 * inch,
         leftMargin=0.65 * inch,
         rightMargin=0.65 * inch,
     )
