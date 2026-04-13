@@ -409,7 +409,8 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
 
 
 def _page4_tier3(subject, comps, recommendation, ss):
-    """Page 4: Tier 3 Equal & Uniform grid with sale ratio column."""
+    """Page 4: Tier 3 Equal & Uniform grid with proximity weighting and
+    line-item adjustments using EPCAD improvement data."""
     elements = []
     elements.append(Paragraph(
         "TIER 3: EQUAL & UNIFORM ANALYSIS (Assessment Equity)", ss["TierHeader"]))
@@ -424,8 +425,10 @@ def _page4_tier3(subject, comps, recommendation, ss):
     appraised = subject["appraised_value"] or 0
     subj_psf = appraised / sqft if sqft > 0 else 0
 
-    headers = ["Account", "Address", "Sqft", "Yr Built",
-               "Appraised", "$/Sqft", "Sale Price", "Sale Ratio", "Distance"]
+    # ---- Main comp grid (with Distance prominent after Address) ----
+    headers = ["Account", "Address", "Distance", "Proximity",
+               "Sqft", "Yr Built", "Appraised", "$/Sqft",
+               "Sale Ratio"]
     rows = [headers]
 
     # Subject row
@@ -434,44 +437,156 @@ def _page4_tier3(subject, comps, recommendation, ss):
     rows.append([
         subject["account_number"],
         "** SUBJECT **",
+        "—",
+        "—",
         f"{sqft:,.0f}",
         str(subject["year_built"] or "N/A"),
         _dollar(appraised),
         _psf(subj_psf),
-        _dollar(subj_sale) if subj_sale else "—",
         _ratio(subj_ratio),
-        "—",
     ])
 
     for c in comps:
+        dist = c.get("distance_miles")
+        prox_label = c.get("proximity_label", "")
+        dist_str = _dist(dist)
+        weight = c.get("proximity_weight", "—")
         rows.append([
             c["account_number"],
             (c["situs_address"] or "")[:18],
+            dist_str,
+            prox_label if prox_label else weight,
             f"{c['living_area_sqft']:,.0f}" if c.get("living_area_sqft") else "—",
             str(c["year_built"] or "N/A"),
             _dollar(c.get("appraised_value")),
             _psf(c.get("appr_psf")),
-            _dollar(c.get("sale_price")) if c.get("sale_price") else "—",
             _ratio(c.get("sale_ratio")),
-            _dist(c.get("distance_miles")),
         ])
 
-    col_w = [0.7*inch, 1.3*inch, 0.5*inch, 0.5*inch,
-             0.85*inch, 0.65*inch, 0.85*inch, 0.65*inch, 0.6*inch]
+    col_w = [0.7*inch, 1.2*inch, 0.6*inch, 0.7*inch,
+             0.5*inch, 0.5*inch, 0.8*inch, 0.6*inch, 0.6*inch]
     tbl = Table(rows, colWidths=col_w)
     style_cmds = _table_style_base()
-    # Bold + highlight subject row
     style_cmds += [
         ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
         ("BACKGROUND", (0, 1), (-1, 1), MED_GRAY),
         ("ALIGN", (0, 0), (1, -1), "LEFT"),
     ]
-    _alt_row_shading(style_cmds, len(comps), start_row=2)
+    # Highlight ★ NEAREST rows with a subtle gold tint
+    GOLD_TINT = colors.HexColor("#fef9e7")
+    for i, c in enumerate(comps):
+        if c.get("proximity_label"):
+            style_cmds.append(
+                ("BACKGROUND", (0, i + 2), (-1, i + 2), GOLD_TINT))
+        elif (i) % 2 == 1:
+            style_cmds.append(
+                ("BACKGROUND", (0, i + 2), (-1, i + 2), LIGHT_GRAY))
     tbl.setStyle(TableStyle(style_cmds))
     elements.append(tbl)
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 6))
 
-    # Summary stats
+    elements.append(Paragraph(
+        "Comps sorted by proximity. Properties within 0.25 miles carry the "
+        "strongest weight with ARB panels.",
+        ss["SectionNote"]))
+    elements.append(Spacer(1, 8))
+
+    # ---- Line-item adjustment table ----
+    elements.append(Paragraph(
+        "<b>LINE-ITEM ADJUSTMENTS (EPCAD Improvement Data)</b>", ss["Heading4"]))
+    elements.append(Spacer(1, 4))
+
+    adj_headers = ["Account", "Address", "Living Area\nAdj",
+                   "Land Value\nAdj", "Year Built\nAdj",
+                   "Net Adj", "Indicated\nValue"]
+    adj_rows = [adj_headers]
+
+    # Subject row in adjustment table
+    adj_rows.append([
+        subject["account_number"],
+        "** SUBJECT **",
+        "—", "—", "—", "—",
+        _dollar(appraised),
+    ])
+
+    for c in comps:
+        adj_rows.append([
+            c["account_number"],
+            (c["situs_address"] or "")[:16],
+            _dollar(c.get("t3_sqft_adj")),
+            _dollar(c.get("t3_land_adj")),
+            _dollar(c.get("t3_year_adj")),
+            _dollar(c.get("t3_net_adj")),
+            _dollar(c.get("t3_indicated_value")),
+        ])
+
+    adj_col_w = [0.7*inch, 1.2*inch, 0.85*inch, 0.85*inch,
+                 0.85*inch, 0.75*inch, 0.9*inch]
+    adj_tbl = Table(adj_rows, colWidths=adj_col_w)
+    adj_style = _table_style_base()
+    adj_style += [
+        ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
+        ("BACKGROUND", (0, 1), (-1, 1), MED_GRAY),
+        ("ALIGN", (0, 0), (1, -1), "LEFT"),
+    ]
+    _alt_row_shading(adj_style, len(comps), start_row=2)
+    # Bold the Indicated Value column
+    adj_style.append(("FONTNAME", (-1, 2), (-1, -1), "Helvetica-Bold"))
+    adj_tbl.setStyle(TableStyle(adj_style))
+    elements.append(adj_tbl)
+    elements.append(Spacer(1, 4))
+
+    # Adjustment methodology note
+    subj_imp = subject.get("improvement_value") or 0
+    class_rate = subj_imp / sqft if sqft and subj_imp else 0
+    elements.append(Paragraph(
+        f"Adjustments use EPCAD's own data: Living Area at "
+        f"{_psf(class_rate)}/sqft (improvement value ÷ sqft), "
+        f"Land Value from EPCAD roll, Year Built at $500/year difference.",
+        ss["SectionNote"]))
+    elements.append(Spacer(1, 8))
+
+    # ---- Statistical summary of indicated values ----
+    indicated_vals = [c["t3_indicated_value"] for c in comps
+                      if c.get("t3_indicated_value")]
+    if indicated_vals:
+        iv_min = min(indicated_vals)
+        iv_max = max(indicated_vals)
+        iv_mean = sum(indicated_vals) / len(indicated_vals)
+        iv_sorted = sorted(indicated_vals)
+        n = len(iv_sorted)
+        iv_median = iv_sorted[n // 2] if n % 2 == 1 \
+            else (iv_sorted[n // 2 - 1] + iv_sorted[n // 2]) / 2
+
+        stat_headers = ["Statistic", "Indicated Value"]
+        stat_rows = [stat_headers,
+                     ["Minimum", _dollar(iv_min)],
+                     ["Mean", _dollar(round(iv_mean))],
+                     ["Median", _dollar(round(iv_median))],
+                     ["Maximum", _dollar(iv_max)],
+                     ["Subject Appraised", _dollar(appraised)]]
+        stat_tbl = Table(stat_rows, colWidths=[1.5*inch, 1.5*inch])
+        stat_style = _table_style_base()
+        _alt_row_shading(stat_style, 5)
+        # Bold subject row
+        stat_style.append(("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"))
+        stat_style.append(("BACKGROUND", (0, -1), (-1, -1), MED_GRAY))
+        stat_tbl.setStyle(TableStyle(stat_style))
+        elements.append(Paragraph(
+            "<b>STATISTICAL SUMMARY — Indicated Values vs Subject</b>",
+            ss["Heading4"]))
+        elements.append(Spacer(1, 4))
+        elements.append(stat_tbl)
+        elements.append(Spacer(1, 6))
+
+        if appraised > iv_median:
+            diff_pct = (appraised - iv_median) / iv_median * 100
+            elements.append(Paragraph(
+                f"<b>Subject appraised value exceeds the median indicated value "
+                f"by {diff_pct:.1f}%.</b>", ss["Normal"]))
+            elements.append(Spacer(1, 4))
+
+    # Summary stats (E&U $/sqft analysis)
     rec = recommendation
     med_psf = rec.get("tier3_median_psf")
     pct = rec.get("tier3_pct_above")

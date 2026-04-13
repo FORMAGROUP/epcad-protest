@@ -466,13 +466,62 @@ def tier3_equal_uniform(conn, subject, config):
             below = within_one
         # else: keep all (ZIP-level fallback)
 
-        # Sort by distance (closest first), then by appr_psf
+        # Sort by proximity tier (closest first), then by appr_psf
         below.sort(key=lambda c: (
             c["distance_miles"] if c["distance_miles"] is not None else 999,
             c["appr_psf"] or 0,
         ))
 
-    return below[:10]
+    below = below[:10]
+
+    # ---------- Proximity weighting ----------
+    for c in below:
+        dist = c.get("distance_miles")
+        if dist is not None and dist <= 0.25:
+            c["proximity_weight"] = "High"
+            c["proximity_label"] = "★ NEAREST"
+        elif dist is not None and dist <= 0.5:
+            c["proximity_weight"] = "Medium"
+            c["proximity_label"] = ""
+        elif dist is not None and dist <= 1.0:
+            c["proximity_weight"] = "Low"
+            c["proximity_label"] = ""
+        else:
+            c["proximity_weight"] = "—"
+            c["proximity_label"] = ""
+
+    # ---------- Line-item adjustments using EPCAD improvement data ----------
+    subj_imp = subject.get("improvement_value") or 0
+    subj_land = subject.get("land_value") or 0
+    # EPCAD class rate: improvement value per sqft (district's own cost basis)
+    class_rate_psf = subj_imp / subj_sqft if subj_sqft and subj_imp else \
+        config.get("adjustment_rates", {}).get("sqft_per_dollar", 65)
+    age_rate = config.get("adjustment_rates", {}).get("age_per_year_dollar", 500)
+
+    for c in below:
+        comp_sqft = c.get("living_area_sqft") or 0
+        comp_land = c.get("land_value") or 0
+        comp_year = c.get("year_built")
+        comp_appraised = c.get("appraised_value") or 0
+
+        # Living area adjustment (subject - comp) * EPCAD class rate/sqft
+        c["t3_sqft_adj"] = round((subj_sqft - comp_sqft) * class_rate_psf)
+
+        # Land value adjustment (subject - comp land value from EPCAD)
+        c["t3_land_adj"] = round(subj_land - comp_land)
+
+        # Year built adjustment (comp_year - subj_year) * rate
+        # Newer comp → subtract; older comp → add
+        if subj_year and comp_year:
+            c["t3_year_adj"] = round((comp_year - subj_year) * age_rate)
+        else:
+            c["t3_year_adj"] = 0
+
+        # Net adjustment and indicated value
+        c["t3_net_adj"] = c["t3_sqft_adj"] + c["t3_land_adj"] + c["t3_year_adj"]
+        c["t3_indicated_value"] = round(comp_appraised + c["t3_net_adj"])
+
+    return below
 
 
 def print_subject(subject):
@@ -544,7 +593,7 @@ def print_tier1(comps, subject):
 
 
 def print_tier3(comps, subject):
-    """Print Tier 3 Equal & Uniform results."""
+    """Print Tier 3 Equal & Uniform results with proximity and adjustments."""
     subj_sqft = subject["living_area_sqft"] or 0
     subj_appraised = subject["appraised_value"] or 0
     subj_psf = subj_appraised / subj_sqft if subj_sqft > 0 else 0
@@ -556,24 +605,24 @@ def print_tier3(comps, subject):
     print(f"  Comps found: {len(comps)} properties assessed below subject")
     print()
 
-    fmt = ("  {:<8s} {:<22s} {:>6s} {:>6s} {:>12s} {:>9s} {:>12s} {:>10s} {:>7s}")
-    print(fmt.format("Acct", "Address", "Sqft", "YrBlt",
-                      "Appraised", "$/Sqft", "Sale Price", "Sale Ratio", "Dist"))
+    fmt = ("  {:<8s} {:<20s} {:>7s} {:>10s} {:>6s} {:>6s} {:>12s} {:>9s} {:>10s}")
+    print(fmt.format("Acct", "Address", "Dist", "Proximity",
+                      "Sqft", "YrBlt", "Appraised", "$/Sqft", "Sale Ratio"))
     print("  " + "-" * 106)
 
-    # Subject row (bold label)
+    # Subject row
     print(fmt.format(
         subject["account_number"][:8],
         "** SUBJECT **",
+        "—",
+        "—",
         f"{subj_sqft:,.0f}",
         str(subject["year_built"] or "N/A"),
         f"${subj_appraised:,.0f}",
         f"${subj_psf:,.2f}",
-        f"${subject['sale_price']:,.0f}" if subject.get("sale_price") else "—",
         f"{subj_appraised / subject['sale_price']:.3f}"
             if subject.get("sale_price") and subject["sale_price"] > 0
             else "—",
-        "—",
     ))
     print("  " + "-" * 106)
 
@@ -581,22 +630,55 @@ def print_tier3(comps, subject):
         appr = c["appraised_value"] or 0
         sqft = c["living_area_sqft"] or 0
         psf = c["appr_psf"] or 0
-        sale = c.get("sale_price")
         ratio = c.get("sale_ratio")
         dist = c.get("distance_miles")
         dist_str = f"{dist:.2f}mi" if dist is not None else "—"
         note = " *" if dist is not None and dist > 1.0 else ""
+        prox = c.get("proximity_label") or c.get("proximity_weight", "—")
         print(fmt.format(
             c["account_number"][:8],
-            (c["situs_address"] or "")[:22],
+            (c["situs_address"] or "")[:20],
+            dist_str + note,
+            prox[:10],
             f"{sqft:,.0f}",
             str(c["year_built"] or "N/A"),
             f"${appr:,.0f}",
             f"${psf:,.2f}",
-            f"${sale:,.0f}" if sale and sale > 0 else "—",
             f"{ratio:.3f}" if ratio else "—",
-            dist_str + note,
         ))
+
+    # Line-item adjustments
+    has_adj = any(c.get("t3_net_adj") is not None for c in comps)
+    if has_adj:
+        print()
+        print("  LINE-ITEM ADJUSTMENTS:")
+        adj_fmt = "  {:<8s} {:>10s} {:>10s} {:>10s} {:>10s} {:>12s}"
+        print(adj_fmt.format("Acct", "Sqft Adj", "Land Adj", "Year Adj",
+                              "Net Adj", "Indicated"))
+        print("  " + "-" * 70)
+        for c in comps:
+            print(adj_fmt.format(
+                c["account_number"][:8],
+                f"${c.get('t3_sqft_adj', 0):+,.0f}",
+                f"${c.get('t3_land_adj', 0):+,.0f}",
+                f"${c.get('t3_year_adj', 0):+,.0f}",
+                f"${c.get('t3_net_adj', 0):+,.0f}",
+                f"${c.get('t3_indicated_value', 0):,.0f}",
+            ))
+
+    # Statistical summary of indicated values
+    indicated = [c["t3_indicated_value"] for c in comps
+                 if c.get("t3_indicated_value")]
+    if indicated:
+        indicated.sort()
+        n = len(indicated)
+        iv_median = indicated[n // 2] if n % 2 == 1 \
+            else (indicated[n // 2 - 1] + indicated[n // 2]) / 2
+        print()
+        print(f"  Indicated Value Stats:  Min ${min(indicated):,.0f} | "
+              f"Mean ${sum(indicated)/n:,.0f} | "
+              f"Median ${iv_median:,.0f} | Max ${max(indicated):,.0f}")
+        print(f"  Subject Appraised:     ${subj_appraised:,.0f}")
 
     # Median $/sqft of comp set
     psfs = [c["appr_psf"] for c in comps if c["appr_psf"]]
@@ -636,6 +718,9 @@ def print_tier3(comps, subject):
         print()
         print(f"  * {len(expanded)} comp(s) over 1 mile — expanded search area")
 
+    print()
+    print("  Comps sorted by proximity. Properties within 0.25 miles carry the")
+    print("  strongest weight with ARB panels.")
     print()
     print("  NOTE: Texas is a non-disclosure state. Sale prices shown reflect")
     print("  EPCAD market value estimates at time of deed transfer, not")
