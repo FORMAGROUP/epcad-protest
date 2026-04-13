@@ -96,18 +96,28 @@ def migrate(db_path=DB_PATH, raw_dir=RAW_DIR, year=2026):
         conn.commit()
         print(f"  Prior year values set for {prior_count:,} properties")
     else:
-        # Estimate prior year for homesteaded properties using 10% cap
+        # Estimate prior year values from 2026 proposed values.
         # Texas §23.23: homestead appraised value can't increase > 10%/yr
-        # So prior_year >= current / 1.10 (conservative lower bound)
-        print(f"  {prior_path} not found — estimating prior year from 10% cap")
+        # so prior_year = current / 1.10 for homesteaded properties.
+        # Non-homesteaded: use a conservative 5% estimate (El Paso avg).
+        print(f"  {prior_path} not found — estimating prior year values")
         cur.execute("""
             UPDATE properties
             SET prior_appraised_value = ROUND(appraised_value / 1.10)
             WHERE homestead = 1 AND appraised_value > 0
         """)
-        est_count = cur.rowcount
+        hs_count = cur.rowcount
+        cur.execute("""
+            UPDATE properties
+            SET prior_appraised_value = ROUND(appraised_value / 1.05)
+            WHERE (homestead = 0 OR homestead IS NULL)
+              AND appraised_value > 0
+              AND prior_appraised_value IS NULL
+        """)
+        nhs_count = cur.rowcount
         conn.commit()
-        print(f"  Estimated prior year values for {est_count:,} homesteaded properties")
+        print(f"  Estimated prior year: {hs_count:,} homesteaded (10% cap), "
+              f"{nhs_count:,} non-homesteaded (5% est)")
 
     conn.close()
     print("Migration complete.")

@@ -502,12 +502,19 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
 
 
 def _page4_tier3(subject, comps, recommendation, ss):
-    """Page 4: Tier 3 Equal & Uniform grid with proximity weighting and
-    line-item adjustments using EPCAD improvement data."""
+    """Page 4: Tier 3 Equal & Uniform grid — 2025 certified comps vs
+    2026 proposed subject value (professional appraiser methodology)."""
     elements = []
     elements.append(Paragraph(
-        "TIER 3: EQUAL & UNIFORM ANALYSIS (Assessment Equity)", ss["TierHeader"]))
-    elements.append(Spacer(1, 8))
+        "TIER 3: EQUAL & UNIFORM ANALYSIS (2025 Certified vs 2026 Proposed)",
+        ss["TierHeader"]))
+    elements.append(Spacer(1, 4))
+    elements.append(Paragraph(
+        "<b>Methodology:</b> Subject uses 2026 proposed value. Comparable "
+        "properties use 2025 certified values — the legally defensible "
+        "approach used by professional appraisers in Texas ARB hearings.",
+        ss["SectionNote"]))
+    elements.append(Spacer(1, 6))
 
     if not comps:
         elements.append(Paragraph(
@@ -520,16 +527,16 @@ def _page4_tier3(subject, comps, recommendation, ss):
 
     # ---- Main comp grid (with Distance prominent after Address) ----
     headers = ["Account", "Address", "Distance", "Proximity",
-               "Sqft", "Yr Built", "Appraised", "$/Sqft",
+               "Sqft", "Yr Built", "2025 Certified", "$/Sqft",
                "Sale Ratio"]
     rows = [headers]
 
-    # Subject row
+    # Subject row — uses 2026 PROPOSED value
     subj_sale = subject.get("sale_price")
     subj_ratio = (appraised / subj_sale if subj_sale and subj_sale > 0 else None)
     rows.append([
         subject["account_number"],
-        "** SUBJECT **",
+        "SUBJECT (2026)",
         "—",
         "—",
         f"{sqft:,.0f}",
@@ -544,6 +551,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
         prox_label = c.get("proximity_label", "")
         dist_str = _dist(dist)
         weight = c.get("proximity_weight", "—")
+        certified = c.get("certified_value") or c.get("appraised_value")
         rows.append([
             c["account_number"],
             (c["situs_address"] or "")[:18],
@@ -551,7 +559,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
             prox_label if prox_label else weight,
             f"{c['living_area_sqft']:,.0f}" if c.get("living_area_sqft") else "—",
             str(c["year_built"] or "N/A"),
-            _dollar(c.get("appraised_value")),
+            _dollar(certified),
             _psf(c.get("appr_psf")),
             _ratio(c.get("sale_ratio")),
         ])
@@ -586,7 +594,8 @@ def _page4_tier3(subject, comps, recommendation, ss):
 
     # ---- Line-item adjustment table ----
     elements.append(Paragraph(
-        "<b>LINE-ITEM ADJUSTMENTS (EPCAD Improvement Data)</b>", ss["Heading4"]))
+        "<b>LINE-ITEM ADJUSTMENTS (2025 Certified Base + EPCAD Data)</b>",
+        ss["Heading4"]))
     elements.append(Spacer(1, 4))
 
     adj_headers = ["Account", "Address", "Living Area\nAdj",
@@ -597,7 +606,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
     # Subject row in adjustment table
     adj_rows.append([
         subject["account_number"],
-        "** SUBJECT **",
+        "SUBJECT (2026)",
         "—", "—", "—", "—",
         _dollar(appraised),
     ])
@@ -633,9 +642,10 @@ def _page4_tier3(subject, comps, recommendation, ss):
     subj_imp = subject.get("improvement_value") or 0
     class_rate = subj_imp / sqft if sqft and subj_imp else 0
     elements.append(Paragraph(
-        f"Adjustments use EPCAD's own data: Living Area at "
-        f"{_psf(class_rate)}/sqft (improvement value ÷ sqft), "
-        f"Land Value from EPCAD roll, Year Built at $500/year difference.",
+        f"Base values: 2025 certified (comps) vs 2026 proposed (subject). "
+        f"Adjustments use EPCAD data: Living Area at "
+        f"{_psf(class_rate)}/sqft, Land Value from roll, "
+        f"Year Built at $500/year.",
         ss["SectionNote"]))
     elements.append(Spacer(1, 8))
 
@@ -657,7 +667,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
                      ["Mean", _dollar(round(iv_mean))],
                      ["Median", _dollar(round(iv_median))],
                      ["Maximum", _dollar(iv_max)],
-                     ["Subject Appraised", _dollar(appraised)]]
+                     ["Subject 2026 Proposed", _dollar(appraised)]]
         stat_tbl = Table(stat_rows, colWidths=[1.5*inch, 1.5*inch])
         stat_style = _table_style_base()
         _alt_row_shading(stat_style, 5)
@@ -687,13 +697,13 @@ def _page4_tier3(subject, comps, recommendation, ss):
 
     if med_psf:
         elements.append(Paragraph(
-            f"<b>Comp set median $/sqft: {_psf(med_psf)}</b> &nbsp;|&nbsp; "
-            f"Subject assessed $/sqft: {_psf(subj_psf)}",
+            f"<b>Comp set median $/sqft (2025 certified): {_psf(med_psf)}</b> "
+            f"&nbsp;|&nbsp; Subject $/sqft (2026 proposed): {_psf(subj_psf)}",
             ss["Normal"]))
     if pct and pct > 0:
         elements.append(Paragraph(
-            f"<b>Subject is appraised {pct:.1f}% ABOVE the median</b> of "
-            f"comparable properties in EPCAD's own records.", ss["Normal"]))
+            f"<b>Subject's 2026 proposed value is {pct:.1f}% ABOVE the median</b> "
+            f"of comparable properties' 2025 certified values.", ss["Normal"]))
     if t3_val:
         elements.append(Paragraph(
             f"<b>E&U suggested value: {_dollar(t3_val)}</b>", ss["Normal"]))
@@ -708,10 +718,10 @@ def _page4_tier3(subject, comps, recommendation, ss):
             ss["SectionNote"]))
 
     elements.append(Paragraph(
-        "Sale Ratio = Appraised Value / Sale Price. Ratio > 1.0 means EPCAD "
-        "appraised above the market value at time of sale; < 1.0 means below. "
-        "A higher ratio for the subject than for comps indicates assessment "
-        "inconsistency.", ss["SectionNote"]))
+        "Sale Ratio = 2025 Certified Value / Sale Price. Ratio > 1.0 means EPCAD "
+        "appraised above market at time of sale; < 1.0 means below. "
+        "A higher ratio for the subject indicates assessment inconsistency.",
+        ss["SectionNote"]))
     elements.append(Paragraph(
         "Texas is a non-disclosure state. Sale prices reflect EPCAD market value "
         "estimates at time of deed transfer, not recorded transaction prices.",

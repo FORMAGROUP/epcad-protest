@@ -346,10 +346,12 @@ def tier1_closed_sales(conn, subject, config):
 
 
 def tier3_equal_uniform(conn, subject, config):
-    """Find comparable properties assessed below subject's $/sqft (Tier 3).
+    """Find comparable properties for Equal & Uniform analysis (Tier 3).
 
-    Uses EPCAD roll data only — no sale required. Adds a sale_ratio column
-    (appraised_value / sale_price) where a recent deed exists.
+    Uses 2025 CERTIFIED values for comps and 2026 PROPOSED value for
+    the subject — the legally defensible methodology used by professional
+    appraisers in Texas ARB hearings.  Adds a sale_ratio column
+    (prior_appraised_value / sale_price) where a recent deed exists.
     """
     cfg = config.get("tier3_filters", {})
     sqft_tol = cfg.get("sqft_tolerance_pct", 0.20)
@@ -363,6 +365,7 @@ def tier3_equal_uniform(conn, subject, config):
     subj_nbr = subject["neighborhood_code"]
     subj_zip = subject["situs_zip"]
     subj_acct = subject["account_number"]
+    # Subject uses 2026 PROPOSED value
     subj_appraised = subject["appraised_value"] or 0
 
     if not subj_sqft or subj_sqft <= 0:
@@ -380,17 +383,22 @@ def tier3_equal_uniform(conn, subject, config):
         if ratio_months % 12 else f"{year - ratio_months // 12}-01-01"
 
     def _query(geo_clause, geo_params):
+        # Use prior_appraised_value (2025 certified) for comps.
+        # Fall back to appraised_value (2026) if prior year is unavailable.
         sql = f"""
             SELECT *,
-                ROUND(appraised_value / NULLIF(living_area_sqft, 0), 2) AS appr_psf,
+                COALESCE(prior_appraised_value, appraised_value) AS certified_value,
+                ROUND(COALESCE(prior_appraised_value, appraised_value)
+                      / NULLIF(living_area_sqft, 0), 2) AS appr_psf,
                 CASE
                     WHEN sale_price > 0 AND sale_date >= ?
-                    THEN ROUND(appraised_value / sale_price, 3)
+                    THEN ROUND(COALESCE(prior_appraised_value, appraised_value)
+                               / sale_price, 3)
                     ELSE NULL
                 END AS sale_ratio
             FROM properties
             WHERE account_number != ?
-              AND appraised_value > 0
+              AND COALESCE(prior_appraised_value, appraised_value) > 0
               AND living_area_sqft BETWEEN ? AND ?
               AND state_class_code LIKE 'A%'
               AND {geo_clause}
@@ -424,7 +432,7 @@ def tier3_equal_uniform(conn, subject, config):
         if len(filtered) >= min_comps:
             comps = filtered
 
-    # Keep only comps assessed below subject $/sqft
+    # Keep only comps whose 2025 certified $/sqft is below subject's 2026 $/sqft
     below = [c for c in comps if c["appr_psf"] and c["appr_psf"] < subj_psf]
 
     # ---------- Distance-based prioritization ----------
@@ -502,7 +510,8 @@ def tier3_equal_uniform(conn, subject, config):
         comp_sqft = c.get("living_area_sqft") or 0
         comp_land = c.get("land_value") or 0
         comp_year = c.get("year_built")
-        comp_appraised = c.get("appraised_value") or 0
+        # Use 2025 certified value as the comp base
+        comp_certified = c.get("certified_value") or c.get("appraised_value") or 0
 
         # Living area adjustment (subject - comp) * EPCAD class rate/sqft
         c["t3_sqft_adj"] = round((subj_sqft - comp_sqft) * class_rate_psf)
@@ -517,9 +526,9 @@ def tier3_equal_uniform(conn, subject, config):
         else:
             c["t3_year_adj"] = 0
 
-        # Net adjustment and indicated value
+        # Net adjustment and indicated value (based on 2025 certified)
         c["t3_net_adj"] = c["t3_sqft_adj"] + c["t3_land_adj"] + c["t3_year_adj"]
-        c["t3_indicated_value"] = round(comp_appraised + c["t3_net_adj"])
+        c["t3_indicated_value"] = round(comp_certified + c["t3_net_adj"])
 
     return below
 
@@ -598,22 +607,23 @@ def print_tier3(comps, subject):
     subj_appraised = subject["appraised_value"] or 0
     subj_psf = subj_appraised / subj_sqft if subj_sqft > 0 else 0
 
-    print("TIER 3 — Equal & Uniform (EPCAD Roll):")
+    print("TIER 3 — Equal & Uniform (2025 Certified vs 2026 Proposed):")
     if not comps:
         print("  No comparable properties found below subject $/sqft.\n")
         return
     print(f"  Comps found: {len(comps)} properties assessed below subject")
+    print(f"  Subject: 2026 proposed value | Comps: 2025 certified values")
     print()
 
     fmt = ("  {:<8s} {:<20s} {:>7s} {:>10s} {:>6s} {:>6s} {:>12s} {:>9s} {:>10s}")
     print(fmt.format("Acct", "Address", "Dist", "Proximity",
-                      "Sqft", "YrBlt", "Appraised", "$/Sqft", "Sale Ratio"))
+                      "Sqft", "YrBlt", "Certified", "$/Sqft", "Sale Ratio"))
     print("  " + "-" * 106)
 
-    # Subject row
+    # Subject row — uses 2026 proposed
     print(fmt.format(
         subject["account_number"][:8],
-        "** SUBJECT **",
+        "** SUBJECT 2026 **",
         "—",
         "—",
         f"{subj_sqft:,.0f}",
@@ -627,7 +637,7 @@ def print_tier3(comps, subject):
     print("  " + "-" * 106)
 
     for c in comps:
-        appr = c["appraised_value"] or 0
+        certified = c.get("certified_value") or c.get("appraised_value") or 0
         sqft = c["living_area_sqft"] or 0
         psf = c["appr_psf"] or 0
         ratio = c.get("sale_ratio")
@@ -642,7 +652,7 @@ def print_tier3(comps, subject):
             prox[:10],
             f"{sqft:,.0f}",
             str(c["year_built"] or "N/A"),
-            f"${appr:,.0f}",
+            f"${certified:,.0f}",
             f"${psf:,.2f}",
             f"{ratio:.3f}" if ratio else "—",
         ))
@@ -719,12 +729,16 @@ def print_tier3(comps, subject):
         print(f"  * {len(expanded)} comp(s) over 1 mile — expanded search area")
 
     print()
+    print("  METHODOLOGY: Subject uses 2026 proposed value. Comps use 2025")
+    print("  certified values — the legally defensible approach used by")
+    print("  professional appraisers in Texas ARB hearings.")
+    print()
     print("  Comps sorted by proximity. Properties within 0.25 miles carry the")
     print("  strongest weight with ARB panels.")
     print()
     print("  NOTE: Texas is a non-disclosure state. Sale prices shown reflect")
     print("  EPCAD market value estimates at time of deed transfer, not")
-    print("  recorded transaction prices. Sale ratios are appraised/market value.")
+    print("  recorded transaction prices. Sale ratios use certified values.")
     print("  Cite: Tex. Tax Code §41.43(b)(3)")
     print()
 
