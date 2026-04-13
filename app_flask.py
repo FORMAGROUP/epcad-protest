@@ -116,6 +116,31 @@ def _run_analysis(address, zipcode, result_holder):
         med_psf = rec.get("tier3_median_psf")
         pct_over = rec.get("tier3_pct_above")
 
+        # --- Year-over-year value change ---
+        prior_value = None
+        yoy_pct = None
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT prior_appraised_value FROM properties "
+            "WHERE account_number = ?",
+            (subject["account_number"],))
+        row = cur.fetchone()
+        if row and row[0] and row[0] > 0 and appraised > 0:
+            prior_value = row[0]
+            yoy_pct = round((appraised - prior_value) / prior_value * 100, 1)
+
+        # --- Homestead exemption check ---
+        has_homestead = False
+        cur.execute(
+            "SELECT homestead FROM properties WHERE account_number = ?",
+            (subject["account_number"],))
+        hs_row = cur.fetchone()
+        if hs_row and hs_row[0]:
+            has_homestead = bool(hs_row[0])
+
+        # Determine if property appears owner-occupied residential
+        is_residential = (subject.get("state_class_code") or "").startswith("A")
+
         conn.close()
 
         result_holder[0] = {
@@ -131,6 +156,11 @@ def _run_analysis(address, zipcode, result_holder):
                 "psf": round(psf, 2),
                 "psf_fmt": f"${psf:,.0f}" if psf else "N/A",
                 "neighborhood": subject["neighborhood_code"] or "",
+                "prior_appraised": prior_value,
+                "prior_appraised_fmt": _fd(prior_value),
+                "yoy_pct": yoy_pct,
+                "has_homestead": has_homestead,
+                "is_residential": is_residential,
             },
             "recommendation": {
                 "tier1_value": rec["tier1_value"],

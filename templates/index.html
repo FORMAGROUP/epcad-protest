@@ -201,6 +201,20 @@
   .result-addr-display { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(1.3rem,4vw,2rem); color:white; font-weight:400; line-height:1.2; margin-bottom:0.35rem; }
   .result-acct { font-family:'DM Mono',monospace; font-size:0.7rem; color:rgba(255,255,255,0.35); margin-bottom:2rem; }
 
+  /* Alert banners */
+  .alert-banner { border-radius:10px; padding:1rem 1.25rem; margin-bottom:1rem; display:none; line-height:1.55; }
+  .alert-banner.visible { display:block; }
+  .alert-banner .alert-icon { font-size:1.1rem; margin-right:0.35rem; }
+  .alert-banner .alert-text { font-size:0.85rem; }
+  .alert-banner .alert-text strong { font-weight:700; }
+  .alert-banner.yoy-gold { background:rgba(200,146,10,0.15); border:1px solid rgba(200,146,10,0.4); color:#F5D78E; }
+  .alert-banner.yoy-red { background:rgba(192,57,43,0.18); border:1px solid rgba(192,57,43,0.45); color:#F5A8A0; }
+  .alert-banner.yoy-red .alert-text strong { color:#FF7B6F; }
+  .alert-banner.yoy-gold .alert-text strong { color:var(--gold-light); }
+  .alert-banner.homestead-blue { background:rgba(96,165,250,0.12); border:1px solid rgba(96,165,250,0.35); color:#93C5FD; }
+  .alert-banner.homestead-blue .alert-text strong { color:#60A5FA; }
+  .alert-banner.homestead-blue a { color:#60A5FA; text-decoration:underline; }
+
   .value-compare { display:grid; grid-template-columns:1fr auto 1fr; gap:0.75rem; align-items:center; margin-bottom:1.25rem; }
   .val-box { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1.25rem 1rem; text-align:center; }
   .val-box.protest { background:rgba(200,146,10,0.12); border-color:rgba(200,146,10,0.35); }
@@ -487,6 +501,13 @@
     <div class="result-addr-display" id="result-addr"></div>
     <div class="result-acct" id="result-acct"></div>
 
+    <div class="alert-banner yoy-gold" id="yoy-banner">
+      <span class="alert-text" id="yoy-text"></span>
+    </div>
+    <div class="alert-banner homestead-blue" id="hs-banner">
+      <span class="alert-text" id="hs-text"></span>
+    </div>
+
     <div class="value-compare">
       <div class="val-box">
         <div class="val-num" id="r-epcad-val"></div>
@@ -711,6 +732,35 @@
     document.getElementById('r-protest-val').textContent = r.recommended_fmt;
     document.getElementById('r-savings').textContent = r.savings_fmt;
 
+    // --- Year-over-year value change alert ---
+    var yoyBanner = document.getElementById('yoy-banner');
+    var yoyText = document.getElementById('yoy-text');
+    yoyBanner.classList.remove('visible', 'yoy-gold', 'yoy-red');
+    if (s.yoy_pct && s.yoy_pct > 10) {
+      var pctRound = Math.round(s.yoy_pct);
+      if (s.yoy_pct > 20) {
+        yoyBanner.classList.add('yoy-red', 'visible');
+      } else {
+        yoyBanner.classList.add('yoy-gold', 'visible');
+      }
+      yoyText.innerHTML = '<span class="alert-icon">\u26A0\uFE0F</span> ' +
+        '<strong>Your value jumped ' + pctRound + '% this year.</strong> ' +
+        'Under \u00A741.43(a-3), EPCAD must prove this increase by clear and convincing evidence. ' +
+        'You have a strong case.';
+    }
+
+    // --- Homestead exemption check ---
+    var hsBanner = document.getElementById('hs-banner');
+    var hsText = document.getElementById('hs-text');
+    hsBanner.classList.remove('visible');
+    if (!s.has_homestead && s.is_residential) {
+      hsBanner.classList.add('homestead-blue', 'visible');
+      hsText.innerHTML = '<span class="alert-icon">\uD83D\uDCA1</span> ' +
+        '<strong>No homestead exemption found on this property.</strong> ' +
+        'Filing a homestead exemption could save you up to $140,000 in taxable value \u2014 ' +
+        'file at <a href="https://epcad.org" target="_blank">epcad.org</a> before April 30, 2026.';
+    }
+
     document.getElementById('r-epcad-psf').textContent = 'EPCAD: ' + s.psf_fmt + '/sqft';
     document.getElementById('r-market-psf').textContent = 'Market: ' + r.tier3_median_psf_fmt + '/sqft';
     const pctEl = document.getElementById('r-pct-over');
@@ -756,6 +806,8 @@
   function goHome() {
     document.getElementById('search-view').style.display = 'block';
     document.getElementById('result-view').style.display = 'none';
+    document.getElementById('yoy-banner').classList.remove('visible');
+    document.getElementById('hs-banner').classList.remove('visible');
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
