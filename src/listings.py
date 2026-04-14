@@ -312,14 +312,23 @@ def fetch_and_store(db_path=None):
 
 
 def find_tier2_comps(conn, subject, config):
-    """Find Tier 2 active listing comps for the subject property."""
+    """Find Tier 2 active listing comps for the subject property.
+
+    Distance-filtered: hard cap of 1.0 mile, expand to 1.5 miles if
+    fewer than 3 results within 1.0 mile. Sorted by distance.
+    """
+    from utils import haversine_miles
+
     cfg = config.get("tier2_filters", {})
     sqft_tol = cfg.get("sqft_tolerance_pct", 0.25)
     max_listings = cfg.get("max_listings", 8)
+    min_close = 3  # minimum comps needed within tight radius
 
     subj_sqft = subject["living_area_sqft"] or 0
     subj_zip = subject["situs_zip"]
     subj_nbr = subject.get("neighborhood_code")
+    subj_lat = subject.get("latitude")
+    subj_lng = subject.get("longitude")
 
     if not subj_sqft or subj_sqft <= 0:
         return []
@@ -371,6 +380,36 @@ def find_tier2_comps(conn, subject, config):
             ORDER BY price ASC
         """, (sqft_lo, sqft_hi))
         results = [_dict_row(cur, r) for r in cur.fetchall()]
+
+    # --- Distance filtering ---
+    # Compute distance for every candidate
+    for c in results:
+        c["distance_miles"] = haversine_miles(
+            subj_lat, subj_lng,
+            c.get("latitude"), c.get("longitude"))
+
+    # Hard cap: 1.0 mile
+    within_one = [c for c in results
+                  if c["distance_miles"] is not None
+                  and c["distance_miles"] <= 1.0]
+
+    if len(within_one) >= min_close:
+        results = within_one
+    else:
+        # Expand to 1.5 miles with warning flag
+        within_1_5 = [c for c in results
+                      if c["distance_miles"] is not None
+                      and c["distance_miles"] <= 1.5]
+        if within_1_5:
+            results = within_1_5
+            print(f"  Tier 2: only {len(within_one)} listing(s) within 1.0 mi, "
+                  f"expanded to 1.5 mi ({len(within_1_5)} found)",
+                  file=__import__('sys').stderr)
+        # else: keep all (ZIP-level fallback)
+
+    # Sort by distance (closest first)
+    results.sort(key=lambda c: (
+        c["distance_miles"] if c["distance_miles"] is not None else 999))
 
     return results[:max_listings]
 

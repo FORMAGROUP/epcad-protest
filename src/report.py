@@ -446,14 +446,15 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
 
     subj_sqft = subject["living_area_sqft"] or 0
     subj_zip = subject["situs_zip"] or "N/A"
+
+    # Compute distance if not already set (e.g. from find_tier2_comps)
     subj_lat = subject.get("latitude")
     subj_lng = subject.get("longitude")
-
-    # Compute distance for each listing
     for c in tier2_comps:
-        c["distance_miles"] = haversine_miles(
-            subj_lat, subj_lng,
-            c.get("latitude"), c.get("longitude"))
+        if c.get("distance_miles") is None:
+            c["distance_miles"] = haversine_miles(
+                subj_lat, subj_lng,
+                c.get("latitude"), c.get("longitude"))
 
     headers = ["Address", "List Price", "Sqft", "$/Sqft",
                "Beds/Baths", "Distance", "DOM"]
@@ -505,6 +506,27 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
                 ss["Normal"]))
 
     elements.append(Spacer(1, 8))
+
+    # Footnote if any listing exceeds 0.5 miles
+    far_comps = [c for c in tier2_comps
+                 if c.get("distance_miles") is not None
+                 and c["distance_miles"] > 0.5]
+    if far_comps:
+        elements.append(Paragraph(
+            f"* {len(far_comps)} listing(s) beyond 0.5 miles included due to "
+            "limited nearby inventory.",
+            ss["SectionNote"]))
+
+    # Warning if search was expanded beyond 1.0 mile
+    expanded = [c for c in tier2_comps
+                if c.get("distance_miles") is not None
+                and c["distance_miles"] > 1.0]
+    if expanded:
+        elements.append(Paragraph(
+            f"Note: {len(expanded)} listing(s) beyond 1.0 mile — expanded "
+            "search radius due to fewer than 3 comparable listings nearby.",
+            ss["SectionNote"]))
+
     elements.append(Paragraph(
         "Listing data from Redfin public search (redfin.com). These are asking "
         "prices, not closed sales. Listing data is a snapshot and may change.",
