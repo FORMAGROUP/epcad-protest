@@ -217,6 +217,19 @@
   .calc-savings-row td:nth-child(3) { font-size:1.4rem; color:#4ADE80; }
   .calc-note { font-size:0.68rem; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
 
+  /* Tax impact mini-table on result page */
+  .tax-impact { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; margin-bottom:1.5rem; }
+  .tax-impact-hdr { padding:0.6rem 1.1rem; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.07); font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
+  .tax-impact-row { display:flex; justify-content:space-between; align-items:center; padding:0.7rem 1.1rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .tax-impact-row:last-child { border-bottom:none; }
+  .tax-impact-label { font-size:0.82rem; color:rgba(255,255,255,0.55); }
+  .tax-impact-vals { display:flex; gap:1.5rem; }
+  .tax-impact-before { font-family:Impact,'Arial Narrow',sans-serif; font-size:0.95rem; color:rgba(255,255,255,0.45); }
+  .tax-impact-after { font-family:Impact,'Arial Narrow',sans-serif; font-size:0.95rem; color:var(--gold); }
+  .tax-impact-row.savings-row { border-top:1px solid rgba(200,146,10,0.3); }
+  .tax-impact-row.savings-row .tax-impact-label { color:rgba(255,255,255,0.7); font-weight:600; }
+  .tax-impact-row.savings-row .tax-impact-after { color:#4ADE80; font-size:1.1rem; }
+
   footer { background:#060E1B; padding:2rem; text-align:center; color:rgba(255,255,255,0.28); font-size:0.76rem; line-height:2; }
   footer strong { color:rgba(255,255,255,0.45); }
 
@@ -611,6 +624,38 @@
       </div>
     </div>
 
+    <div class="tax-impact" id="tax-impact">
+      <div class="tax-impact-hdr">Tax Bill Impact</div>
+      <div class="tax-impact-row">
+        <div class="tax-impact-label">Annual Tax Bill</div>
+        <div class="tax-impact-vals">
+          <div class="tax-impact-before" id="ti-bill-before"></div>
+          <div class="tax-impact-after" id="ti-bill-after"></div>
+        </div>
+      </div>
+      <div class="tax-impact-row">
+        <div class="tax-impact-label">Monthly Cost</div>
+        <div class="tax-impact-vals">
+          <div class="tax-impact-before" id="ti-mo-before"></div>
+          <div class="tax-impact-after" id="ti-mo-after"></div>
+        </div>
+      </div>
+      <div class="tax-impact-row savings-row">
+        <div class="tax-impact-label">Annual Savings</div>
+        <div class="tax-impact-vals">
+          <div class="tax-impact-before"></div>
+          <div class="tax-impact-after" id="ti-annual-save"></div>
+        </div>
+      </div>
+      <div class="tax-impact-row savings-row">
+        <div class="tax-impact-label">Monthly Savings</div>
+        <div class="tax-impact-vals">
+          <div class="tax-impact-before"></div>
+          <div class="tax-impact-after" id="ti-monthly-save"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="tier-summary">
       <div class="tier-summary-hdr">Evidence Located</div>
       <div class="tier-row">
@@ -846,6 +891,25 @@
       pctEl.textContent = Math.round(r.pct_over) + '% overassessed';
     } else {
       pctEl.textContent = '';
+    }
+
+    // --- Tax Bill Impact table ---
+    var taxRate = 0.027;
+    var appraised = s.appraised || 0;
+    var protestVal = r.recommended || 0;
+    if (appraised > 0 && protestVal > 0) {
+      var billBefore = appraised * taxRate;
+      var billAfter = protestVal * taxRate;
+      var annualSave = billBefore - billAfter;
+      document.getElementById('ti-bill-before').textContent = fmtDollar(billBefore);
+      document.getElementById('ti-bill-after').textContent = fmtDollar(billAfter);
+      document.getElementById('ti-mo-before').textContent = fmtDollar(billBefore / 12);
+      document.getElementById('ti-mo-after').textContent = fmtDollar(billAfter / 12);
+      document.getElementById('ti-annual-save').textContent = fmtDollar(annualSave) + '/yr';
+      document.getElementById('ti-monthly-save').textContent = fmtDollar(annualSave / 12) + '/mo';
+      document.getElementById('tax-impact').style.display = '';
+    } else {
+      document.getElementById('tax-impact').style.display = 'none';
     }
 
     document.getElementById('r-t1-count').textContent = d.counts.tier1 + ' properties found';
