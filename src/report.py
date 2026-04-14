@@ -55,11 +55,13 @@ def _dist(val):
 
 def _styles():
     ss = getSampleStyleSheet()
-    ss.add(ParagraphStyle("TierHeader", parent=ss["Heading2"],
+    ss.add(ParagraphStyle("TierHeader", parent=ss["Normal"],
                           textColor=GOLD, backColor=NAVY,
-                          fontSize=11, leading=15, spaceAfter=6,
+                          fontName="Helvetica-Bold",
+                          fontSize=11, leading=16, spaceAfter=6,
                           spaceBefore=0, alignment=TA_LEFT,
                           leftIndent=8, rightIndent=8,
+                          borderPadding=(6, 8, 6, 8),
                           wordWrap="CJK"))
     ss.add(ParagraphStyle("SectionNote", parent=ss["Normal"],
                           fontSize=8, leading=10, textColor=colors.gray,
@@ -359,10 +361,15 @@ def _page2_tier1(subject, comps, ss):
                       lambda c: _dollar(c.get("adjusted_value"))))
 
     n_cols = len(headers)
-    # Scale column widths based on number of comps
+    # Scale column widths: narrow field label, rest split evenly
+    # Minimum 1.0" per comp column so addresses can wrap
     avail = 7.2  # usable page width in inches
-    field_w = 0.9
-    comp_w = (avail - field_w) / (n_cols - 1)
+    field_w = 0.75
+    comp_w = max(1.0, (avail - field_w) / (n_cols - 1))
+    # If total exceeds page, shrink comp columns proportionally
+    total = field_w + comp_w * (n_cols - 1)
+    if total > avail:
+        comp_w = (avail - field_w) / (n_cols - 1)
     col_w = [field_w * inch] + [comp_w * inch] * (n_cols - 1)
 
     tbl = Table(rows, colWidths=col_w[:n_cols])
@@ -370,6 +377,8 @@ def _page2_tier1(subject, comps, ss):
     style_cmds += [
         ("ALIGN", (0, 0), (0, -1), "LEFT"),
         ("FONTNAME", (0, 1), (0, -1), "Helvetica-Bold"),
+        # Ensure address row wraps cleanly
+        ("VALIGN", (0, 1), (-1, 1), "TOP"),
     ]
     # Bold the adjusted value row
     style_cmds.append(("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"))
