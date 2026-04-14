@@ -187,6 +187,36 @@
   .email-row input { flex:1; min-width:190px; padding:0.85rem 1rem; border:none; border-radius:8px; font-family:'Lato',sans-serif; font-size:0.92rem; outline:none; }
   .email-row button { background:var(--gold); color:var(--navy); border:none; padding:0.85rem 1.4rem; border-radius:8px; font-family:'Lato',sans-serif; font-weight:700; cursor:pointer; }
 
+  /* Savings Calculator */
+  .calc-bg { background:var(--navy); padding:3.5rem 2rem; }
+  .calc-inner { max-width:580px; margin:0 auto; }
+  .calc-eyebrow { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:0.65rem; }
+  .calc-h2 { font-family:'Bodoni Moda',serif; font-size:1.8rem; color:white; margin-bottom:0.5rem; line-height:1.2; }
+  .calc-sub { color:rgba(255,255,255,0.5); font-size:0.88rem; margin-bottom:1.8rem; }
+  .calc-input-wrap { position:relative; margin-bottom:1.5rem; }
+  .calc-input-wrap label { display:block; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:0.4rem; }
+  .calc-input-wrap input {
+    width:100%; padding:1rem 1.2rem 1rem 1.8rem; border:2px solid rgba(255,255,255,0.12);
+    border-radius:10px; background:rgba(255,255,255,0.06); color:white;
+    font-family:Impact,'Arial Narrow',sans-serif; font-size:1.8rem; font-weight:400;
+    outline:none; transition:border-color 0.2s;
+  }
+  .calc-input-wrap input:focus { border-color:var(--gold); }
+  .calc-input-wrap .calc-dollar { position:absolute; left:0.9rem; bottom:1.05rem; color:rgba(255,255,255,0.35); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.5rem; pointer-events:none; }
+  .calc-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:10px; overflow:hidden; margin-bottom:1rem; }
+  .calc-table th { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; padding:0.7rem 1rem; text-align:left; }
+  .calc-table th:first-child { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.4); width:40%; }
+  .calc-table th:nth-child(2) { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5); }
+  .calc-table th:nth-child(3) { background:rgba(200,146,10,0.15); color:var(--gold); }
+  .calc-table td { padding:0.75rem 1rem; font-size:0.92rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .calc-table td:first-child { color:rgba(255,255,255,0.55); font-size:0.82rem; background:rgba(255,255,255,0.02); }
+  .calc-table td:nth-child(2) { color:rgba(255,255,255,0.7); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.05rem; background:rgba(255,255,255,0.03); }
+  .calc-table td:nth-child(3) { color:var(--gold); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.05rem; font-weight:400; background:rgba(200,146,10,0.06); }
+  .calc-table tr:last-child td { border-bottom:none; }
+  .calc-savings-row td { border-top:2px solid var(--gold) !important; padding-top:0.9rem; }
+  .calc-savings-row td:nth-child(3) { font-size:1.4rem; color:#4ADE80; }
+  .calc-note { font-size:0.68rem; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
+
   footer { background:#060E1B; padding:2rem; text-align:center; color:rgba(255,255,255,0.28); font-size:0.76rem; line-height:2; }
   footer strong { color:rgba(255,255,255,0.45); }
 
@@ -352,6 +382,13 @@
     .savings-right { text-align:left; }
     .cta-block { padding:1.5rem 1.25rem; }
     .cta-headline { font-size:1.15rem; }
+    .calc-bg { padding:2.5rem 1.25rem; }
+    .calc-h2 { font-size:1.4rem; }
+    .calc-input-wrap input { font-size:1.5rem; padding:0.85rem 1rem 0.85rem 1.5rem; }
+    .calc-input-wrap .calc-dollar { font-size:1.2rem; bottom:0.9rem; }
+    .calc-table td, .calc-table th { padding:0.6rem 0.65rem; font-size:0.78rem; }
+    .calc-table td:nth-child(2), .calc-table td:nth-child(3) { font-size:0.92rem; }
+    .calc-savings-row td:nth-child(3) { font-size:1.15rem; }
   }
 </style>
 </head>
@@ -440,6 +477,47 @@
       <div><div class="stat-num">3</div><div class="stat-label">Legal evidence tiers<br>in every report</div></div>
       <div><div class="stat-num">7</div><div class="stat-label">Pages in your<br>ARB protest packet</div></div>
       <div><div class="stat-num">$0</div><div class="stat-label">To see your<br>potential savings</div></div>
+    </div>
+  </div>
+
+  <div class="calc-bg" id="calc-section">
+    <div class="calc-inner">
+      <div class="calc-eyebrow">Savings Calculator</div>
+      <h2 class="calc-h2">See how much you could save.</h2>
+      <p class="calc-sub">Enter your EPCAD appraised value. We'll estimate your savings based on the median El Paso protest reduction of 18.6%.</p>
+      <div class="calc-input-wrap">
+        <label for="calc-value">Current EPCAD Appraised Value</label>
+        <span class="calc-dollar">$</span>
+        <input type="text" id="calc-value" inputmode="numeric" placeholder="350,000" oninput="updateCalc()" />
+      </div>
+      <table class="calc-table" id="calc-results">
+        <tr>
+          <th></th>
+          <th>Before Protest</th>
+          <th>After Protest</th>
+        </tr>
+        <tr>
+          <td>Appraised Value</td>
+          <td id="c-before-val">—</td>
+          <td id="c-after-val">—</td>
+        </tr>
+        <tr>
+          <td>Annual Tax (2.7% rate)</td>
+          <td id="c-before-tax">—</td>
+          <td id="c-after-tax">—</td>
+        </tr>
+        <tr>
+          <td>Monthly Cost</td>
+          <td id="c-before-mo">—</td>
+          <td id="c-after-mo">—</td>
+        </tr>
+        <tr class="calc-savings-row">
+          <td>Annual Savings</td>
+          <td></td>
+          <td id="c-savings">—</td>
+        </tr>
+      </table>
+      <div class="calc-note">Based on median 18.6% reduction &middot; 2.7% combined El Paso tax rate &middot; Actual results vary by property</div>
     </div>
   </div>
 
@@ -795,6 +873,13 @@
     document.getElementById('result-view').style.display = 'block';
     window.scrollTo({top: 0, behavior: 'smooth'});
 
+    // Pre-fill savings calculator with actual EPCAD value
+    if (s.appraised && s.appraised > 0) {
+      var calcInput = document.getElementById('calc-value');
+      calcInput.value = Math.round(s.appraised).toLocaleString('en-US');
+      updateCalc();
+    }
+
     // Show scroll hint, auto-remove after fade animation
     var hint = document.getElementById('scroll-hint');
     if (hint) {
@@ -883,6 +968,52 @@
   document.getElementById('modal-overlay').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
+
+  // --- Savings Calculator ---
+  function fmtDollar(n) {
+    if (!n || isNaN(n)) return '—';
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+
+  function parseCalcInput(str) {
+    return parseFloat((str || '').replace(/[^0-9.]/g, '')) || 0;
+  }
+
+  function updateCalc() {
+    var input = document.getElementById('calc-value');
+    var raw = input.value.replace(/[^0-9]/g, '');
+    // Format with commas as they type
+    if (raw) {
+      input.value = parseInt(raw).toLocaleString('en-US');
+    }
+
+    var val = parseCalcInput(input.value);
+    if (val <= 0) {
+      document.getElementById('c-before-val').textContent = '—';
+      document.getElementById('c-after-val').textContent = '—';
+      document.getElementById('c-before-tax').textContent = '���';
+      document.getElementById('c-after-tax').textContent = '—';
+      document.getElementById('c-before-mo').textContent = '—';
+      document.getElementById('c-after-mo').textContent = '—';
+      document.getElementById('c-savings').textContent = '—';
+      return;
+    }
+
+    var reduction = 0.186;  // 18.6% median El Paso reduction
+    var taxRate = 0.027;    // 2.7% combined rate
+    var afterVal = val * (1 - reduction);
+    var beforeTax = val * taxRate;
+    var afterTax = afterVal * taxRate;
+    var savings = beforeTax - afterTax;
+
+    document.getElementById('c-before-val').textContent = fmtDollar(val);
+    document.getElementById('c-after-val').textContent = fmtDollar(afterVal);
+    document.getElementById('c-before-tax').textContent = fmtDollar(beforeTax);
+    document.getElementById('c-after-tax').textContent = fmtDollar(afterTax);
+    document.getElementById('c-before-mo').textContent = fmtDollar(beforeTax / 12);
+    document.getElementById('c-after-mo').textContent = fmtDollar(afterTax / 12);
+    document.getElementById('c-savings').textContent = fmtDollar(savings) + '/yr';
+  }
 </script>
 </body>
 </html>
