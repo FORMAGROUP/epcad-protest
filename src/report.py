@@ -1027,29 +1027,35 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
         "COMPARABLE PROPERTIES — PROXIMITY ANALYSIS", ss["TierHeader"]))
     elements.append(Spacer(1, 10))
 
-    # Collect all comp entries
+    # Collect all comp entries with $/sqft and indicated value
     all_comps = []
     for c in (tier1_comps or []):
         dist = c.get("distance_miles")
+        sqft_c = c.get("living_area_sqft") or 0
+        sp = c.get("sale_price") or 0
+        psf = sp / sqft_c if sqft_c > 0 and sp > 0 else None
         all_comps.append({
-            "address": (c.get("situs_address") or "")[:30],
+            "address": (c.get("situs_address") or "")[:26],
             "account": c.get("account_number", ""),
             "tier": "Tier 1",
             "dist": dist,
             "dist_fmt": f"{dist:.2f} mi" if dist is not None else "—",
+            "psf": psf,
+            "indicated": c.get("adjusted_value"),
         })
     for c in (tier3_comps or []):
         dist = c.get("distance_miles")
-        # Skip duplicates already in Tier 1
         acct = c.get("account_number", "")
         if any(x["account"] == acct for x in all_comps):
             continue
         all_comps.append({
-            "address": (c.get("situs_address") or "")[:30],
+            "address": (c.get("situs_address") or "")[:26],
             "account": acct,
             "tier": "Tier 3",
             "dist": dist,
             "dist_fmt": f"{dist:.2f} mi" if dist is not None else "—",
+            "psf": c.get("appr_psf"),
+            "indicated": c.get("t3_indicated_value"),
         })
 
     if not all_comps:
@@ -1073,18 +1079,28 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
         f"<b>{within_half}</b> within 0.5 miles, "
         f"<b>{within_one}</b> within 1.0 mile.",
         ss["Normal"]))
-    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(
+        "Tier 1 = Closed Sales &middot; Tier 2 = Active Listings &middot; "
+        "Tier 3 = Equal &amp; Uniform — sorted by distance from subject.",
+        ss["SectionNote"]))
+    elements.append(Spacer(1, 8))
 
-    # Distance table
-    dist_headers = ["Property", "Account", "Tier", "Distance"]
+    # Distance table with $/sqft and indicated value
+    dist_headers = ["Property", "Account", "Tier", "Distance",
+                    "$/Sqft", "Indicated Value"]
     dist_rows = [dist_headers]
 
     # Subject row
+    subj_sqft = subject.get("living_area_sqft") or 0
+    subj_appr = subject.get("appraised_value") or 0
+    subj_psf = subj_appr / subj_sqft if subj_sqft > 0 else 0
     dist_rows.append([
-        (subject.get("situs_address") or "")[:30],
+        (subject.get("situs_address") or "")[:26],
         subject.get("account_number", ""),
         "Subject",
         "—",
+        _psf(subj_psf),
+        _dollar(subj_appr),
     ])
 
     for comp in all_comps:
@@ -1096,16 +1112,23 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
             comp["account"],
             comp["tier"],
             label,
+            _psf(comp["psf"]),
+            _dollar(comp["indicated"]),
         ])
 
     dt = Table(dist_rows,
-               colWidths=[2.8 * inch, 1.0 * inch, 0.8 * inch, 0.9 * inch])
+               colWidths=[2.1*inch, 0.7*inch, 0.55*inch, 0.7*inch,
+                          0.7*inch, 0.95*inch])
     ds = _table_style_base()
-    ds.append(("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"))
-    ds.append(("BACKGROUND", (0, 1), (-1, 1), MED_GRAY))
+    ds += [
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("FONTSIZE", (0, 0), (-1, 0), 8),
+        ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
+        ("BACKGROUND", (0, 1), (-1, 1), MED_GRAY),
+        ("ALIGN", (0, 0), (0, -1), "LEFT"),
+        ("ALIGN", (1, 0), (1, -1), "LEFT"),
+    ]
     _alt_row_shading(ds, len(dist_rows) - 2, start_row=2)
-    ds.append(("ALIGN", (0, 0), (0, -1), "LEFT"))
-    ds.append(("ALIGN", (1, 0), (1, -1), "LEFT"))
     dt.setStyle(TableStyle(ds))
     elements.append(dt)
     elements.append(Spacer(1, 10))
@@ -1126,9 +1149,9 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
         ss["Normal"]))
     elements.append(Spacer(1, 6))
     elements.append(Paragraph(
-        "Distance is calculated as straight-line (Haversine formula) from "
-        "subject property to each comparable. Actual driving distance may be "
-        "greater.", ss["SectionNote"]))
+        "Distance is straight-line (Haversine). $/Sqft = sale price or "
+        "appraised value per living sqft. Indicated Value = adjusted value "
+        "from that tier's analysis.", ss["SectionNote"]))
 
     return elements
 
