@@ -655,10 +655,12 @@ def _page4_tier3(subject, comps, recommendation, ss):
     subj_pool_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
                          if (i.get("TypeCD") or "").strip() in ("SW", "SWP"))
 
-    # EPCAD class rates (R4 residential from cost schedule)
-    RATE_MAIN = 110.34   # $/sqft R4 main area
-    RATE_GARAGE = 55.0   # $/sqft garage
-    RATE_LAND = 2.0      # $/sqft land delta
+    # EPCAD R4 class rates from 2025 Certified Export cost schedule
+    RATE_MAIN = 110.34       # $/sqft R4 main area
+    RATE_GARAGE = 55.17      # $/sqft garage
+    RATE_PORCH_CVD = 27.50   # $/sqft covered patio
+    RATE_PORCH_OPEN = 15.00  # $/sqft open porch
+    RATE_LAND = 2.00         # $/sqft land delta
 
     adj_headers = ["Account", "Land", "Living\nArea",
                    "Garage", "Cvd Porch", "Open\nPorch", "Pool",
@@ -718,10 +720,12 @@ def _page4_tier3(subject, comps, recommendation, ss):
     elements.append(Spacer(1, 4))
 
     elements.append(Paragraph(
-        f"EPCAD class rates: Living Area ${RATE_MAIN:.2f}/sqft (R4 main), "
-        f"Garage ${RATE_GARAGE:.0f}/sqft, Land ${RATE_LAND:.0f}/sqft delta. "
-        f"Component adjustments (Garage, Porch, Pool) require per-comp API "
-        f"data — shown as dashes when unavailable.",
+        f"EPCAD R4 class rates (2025 Certified Export): Main Area "
+        f"${RATE_MAIN:.2f}/sqft, Garage ${RATE_GARAGE:.2f}/sqft, "
+        f"Covered Porch ${RATE_PORCH_CVD:.2f}/sqft, Open Porch "
+        f"${RATE_PORCH_OPEN:.2f}/sqft, Land ${RATE_LAND:.2f}/sqft delta. "
+        f"Age adjustment $500/year. Component columns require per-comp "
+        f"API data — shown as dashes when unavailable.",
         ss["SectionNote"]))
     # ---- Statistical summary — force to top of new page ----
     elements.append(PageBreak())

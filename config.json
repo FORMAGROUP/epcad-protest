@@ -4,9 +4,14 @@
   "db_path": "data/epcad.db",
   "output_path": "output/",
   "adjustment_rates": {
-    "sqft_per_dollar": 65,
+    "sqft_per_dollar": 110.34,
     "age_per_year_dollar": 500,
-    "lot_sqft_per_dollar": 2
+    "lot_sqft_per_dollar": 2,
+    "R4_main": 110.34,
+    "R4_garage": 55.17,
+    "R4_porch_covered": 27.50,
+    "R4_porch_open": 15.00,
+    "land_per_sqft": 2.00
   },
   "tier1_filters": {
     "sqft_tolerance_pct": 0.25,

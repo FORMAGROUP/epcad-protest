@@ -522,26 +522,27 @@ def tier3_equal_uniform(conn, subject, config):
             c["proximity_weight"] = "—"
             c["proximity_label"] = ""
 
-    # ---------- Line-item adjustments using EPCAD improvement data ----------
-    subj_imp = subject.get("improvement_value") or 0
+    # ---------- Line-item adjustments using EPCAD improvement rates ----------
     subj_land = subject.get("land_value") or 0
-    # EPCAD class rate: improvement value per sqft (district's own cost basis)
-    class_rate_psf = subj_imp / subj_sqft if subj_sqft and subj_imp else \
-        config.get("adjustment_rates", {}).get("sqft_per_dollar", 65)
-    age_rate = config.get("adjustment_rates", {}).get("age_per_year_dollar", 500)
+    rates = config.get("adjustment_rates", {})
+    class_rate_psf = rates.get("R4_main", 110.34)
+    land_rate_psf = rates.get("land_per_sqft", 2.0)
+    age_rate = rates.get("age_per_year_dollar", 500)
+
+    subj_lot = subject.get("lot_size_sqft") or 0
 
     for c in below:
         comp_sqft = c.get("living_area_sqft") or 0
-        comp_land = c.get("land_value") or 0
+        comp_lot = c.get("lot_size_sqft") or 0
         comp_year = c.get("year_built")
         # Use 2025 certified value as the comp base
         comp_certified = c.get("certified_value") or c.get("appraised_value") or 0
 
-        # Living area adjustment (subject - comp) * EPCAD class rate/sqft
+        # Living area adjustment (subject - comp) * EPCAD R4 class rate
         c["t3_sqft_adj"] = round((subj_sqft - comp_sqft) * class_rate_psf)
 
-        # Land value adjustment (subject - comp land value from EPCAD)
-        c["t3_land_adj"] = round(subj_land - comp_land)
+        # Land adjustment: lot size delta * land rate per sqft
+        c["t3_land_adj"] = round((subj_lot - comp_lot) * land_rate_psf)
 
         # Year built adjustment (comp_year - subj_year) * rate
         # Newer comp → subtract; older comp → add
