@@ -446,9 +446,17 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
 
     subj_sqft = subject["living_area_sqft"] or 0
     subj_zip = subject["situs_zip"] or "N/A"
+    subj_lat = subject.get("latitude")
+    subj_lng = subject.get("longitude")
+
+    # Compute distance for each listing
+    for c in tier2_comps:
+        c["distance_miles"] = haversine_miles(
+            subj_lat, subj_lng,
+            c.get("latitude"), c.get("longitude"))
 
     headers = ["Address", "List Price", "Sqft", "$/Sqft",
-               "Beds/Baths", "Yr Built", "DOM"]
+               "Beds/Baths", "Distance", "DOM"]
     rows = [headers]
 
     for c in tier2_comps:
@@ -461,12 +469,12 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
             f"{c['sqft']:,.0f}" if c.get("sqft") else "—",
             _psf(psf) if psf else "—",
             f"{beds}/{baths:.0f}",
-            str(c.get("year_built") or "—"),
+            _dist(c.get("distance_miles")),
             str(c.get("days_on_market", "—")),
         ])
 
-    col_w = [1.9*inch, 0.9*inch, 0.65*inch, 0.7*inch,
-             0.7*inch, 0.6*inch, 0.5*inch]
+    col_w = [1.8*inch, 0.85*inch, 0.6*inch, 0.65*inch,
+             0.65*inch, 0.65*inch, 0.5*inch]
     tbl = Table(rows, colWidths=col_w)
     style_cmds = _table_style_base()
     style_cmds.append(("ALIGN", (0, 0), (0, -1), "LEFT"))
