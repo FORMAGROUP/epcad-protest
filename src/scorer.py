@@ -36,7 +36,7 @@ def adjust_tier1(subject, comps, config=None):
     if config is None:
         config = load_config()
     rates = config.get("adjustment_rates", {})
-    rate_sqft = rates.get("sqft_per_dollar", 65)
+    rate_sqft = rates.get("sqft_per_dollar", 110.34)
     rate_age = rates.get("age_per_year_dollar", 500)
     rate_lot = rates.get("lot_sqft_per_dollar", 2)
 
