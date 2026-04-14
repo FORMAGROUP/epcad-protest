@@ -57,8 +57,10 @@ def _styles():
     ss = getSampleStyleSheet()
     ss.add(ParagraphStyle("TierHeader", parent=ss["Heading2"],
                           textColor=GOLD, backColor=NAVY,
-                          fontSize=13, leading=18, spaceAfter=6,
-                          alignment=TA_LEFT, leftIndent=6, rightIndent=6))
+                          fontSize=11, leading=15, spaceAfter=6,
+                          spaceBefore=0, alignment=TA_LEFT,
+                          leftIndent=8, rightIndent=8,
+                          wordWrap="CJK"))
     ss.add(ParagraphStyle("SectionNote", parent=ss["Normal"],
                           fontSize=8, leading=10, textColor=colors.gray,
                           spaceAfter=4))
@@ -314,10 +316,15 @@ def _page2_tier1(subject, comps, ss):
     def _row(label, subj_val, comp_fn):
         return [label, subj_val] + [comp_fn(c) for c in top_comps]
 
+    # Address row uses Paragraph for wrapping in narrow columns
+    _addr_style = ParagraphStyle("_addr", fontSize=7, leading=9,
+                                 fontName="Helvetica")
     rows = [headers]
-    rows.append(_row("Address",
-                      subject["situs_address"] or "",
-                      lambda c: (c["situs_address"] or "")[:24]))
+    rows.append(
+        ["Address",
+         Paragraph((subject["situs_address"] or "")[:28], _addr_style)] +
+        [Paragraph((c["situs_address"] or "")[:28], _addr_style)
+         for c in top_comps])
     rows.append(_row("Account #",
                       subject["account_number"],
                       lambda c: c["account_number"]))
@@ -677,9 +684,14 @@ def _page4_tier3(subject, comps, recommendation, ss):
         f"Component adjustments (Garage, Porch, Pool) require per-comp API "
         f"data — shown as dashes when unavailable.",
         ss["SectionNote"]))
+    # ---- Statistical summary — force to top of new page ----
+    elements.append(PageBreak())
+
+    elements.append(Paragraph(
+        "TIER 3: STATISTICAL SUMMARY & E&U ANALYSIS (continued)",
+        ss["TierHeader"]))
     elements.append(Spacer(1, 8))
 
-    # ---- Statistical summary of indicated values ----
     indicated_vals = [c["t3_indicated_value"] for c in comps
                       if c.get("t3_indicated_value")]
     if indicated_vals:
