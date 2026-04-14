@@ -592,60 +592,90 @@ def _page4_tier3(subject, comps, recommendation, ss):
         ss["SectionNote"]))
     elements.append(Spacer(1, 8))
 
-    # ---- Line-item adjustment table ----
+    # ---- Net Adjustment breakdown table ----
     elements.append(Paragraph(
-        "<b>LINE-ITEM ADJUSTMENTS (2025 Certified Base + EPCAD Data)</b>",
+        "<b>NET ADJUSTMENT BREAKDOWN (EPCAD Class Rates)</b>",
         ss["Heading4"]))
     elements.append(Spacer(1, 4))
 
-    adj_headers = ["Account", "Address", "Living Area\nAdj",
-                   "Land Value\nAdj", "Year Built\nAdj",
-                   "Net Adj", "Indicated\nValue"]
+    # Detect subject components from API improvement data
+    subj_imps = subject.get("_improvements") or []
+    subj_garage_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
+                           if (i.get("TypeCD") or "").strip() == "G")
+    subj_cpat_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
+                         if (i.get("TypeCD") or "").strip() == "CPAT")
+    subj_porch_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
+                          if (i.get("TypeCD") or "").strip() == "O")
+    subj_pool_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
+                         if (i.get("TypeCD") or "").strip() in ("SW", "SWP"))
+
+    # EPCAD class rates (R4 residential from cost schedule)
+    RATE_MAIN = 110.34   # $/sqft R4 main area
+    RATE_GARAGE = 55.0   # $/sqft garage
+    RATE_LAND = 2.0      # $/sqft land delta
+
+    adj_headers = ["Account", "Land", "Living\nArea",
+                   "Garage", "Cvd Porch", "Open\nPorch", "Pool",
+                   "Net Adj", "Indicated"]
     adj_rows = [adj_headers]
 
-    # Subject row in adjustment table
+    # Subject row
     adj_rows.append([
-        subject["account_number"],
-        "SUBJECT (2026)",
-        "—", "—", "—", "—",
+        subject["account_number"][:8],
+        "—", "—", "—", "—", "—", "—", "—",
         _dollar(appraised),
     ])
 
     for c in comps:
+        comp_sqft = c.get("living_area_sqft") or 0
+        comp_land_sqft = c.get("lot_size_sqft") or 0
+        subj_lot = subject.get("lot_size_sqft") or 0
+        certified = c.get("certified_value") or c.get("appraised_value") or 0
+
+        land_adj = round((subj_lot - comp_land_sqft) * RATE_LAND) if subj_lot else 0
+        area_adj = round((sqft - comp_sqft) * RATE_MAIN)
+        # Garage/porch/pool: assume comp lacks if no API data
+        garage_adj = 0
+        cpat_adj = 0
+        porch_adj = 0
+        pool_adj = 0
+
+        net = land_adj + area_adj + garage_adj + cpat_adj + porch_adj + pool_adj
+        indicated = round(certified + net)
+
         adj_rows.append([
-            c["account_number"],
-            (c["situs_address"] or "")[:16],
-            _dollar(c.get("t3_sqft_adj")),
-            _dollar(c.get("t3_land_adj")),
-            _dollar(c.get("t3_year_adj")),
-            _dollar(c.get("t3_net_adj")),
-            _dollar(c.get("t3_indicated_value")),
+            c["account_number"][:8],
+            _dollar(land_adj),
+            _dollar(area_adj),
+            _dollar(garage_adj) if garage_adj else "—",
+            _dollar(cpat_adj) if cpat_adj else "—",
+            _dollar(porch_adj) if porch_adj else "—",
+            _dollar(pool_adj) if pool_adj else "—",
+            _dollar(net),
+            _dollar(indicated),
         ])
 
-    adj_col_w = [0.7*inch, 1.2*inch, 0.85*inch, 0.85*inch,
-                 0.85*inch, 0.75*inch, 0.9*inch]
+    adj_col_w = [0.6*inch, 0.65*inch, 0.65*inch, 0.6*inch,
+                 0.6*inch, 0.55*inch, 0.55*inch, 0.7*inch, 0.8*inch]
     adj_tbl = Table(adj_rows, colWidths=adj_col_w)
     adj_style = _table_style_base()
     adj_style += [
         ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
         ("BACKGROUND", (0, 1), (-1, 1), MED_GRAY),
-        ("ALIGN", (0, 0), (1, -1), "LEFT"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("FONTSIZE", (0, 0), (-1, 0), 7.5),
     ]
     _alt_row_shading(adj_style, len(comps), start_row=2)
-    # Bold the Indicated Value column
     adj_style.append(("FONTNAME", (-1, 2), (-1, -1), "Helvetica-Bold"))
     adj_tbl.setStyle(TableStyle(adj_style))
     elements.append(adj_tbl)
     elements.append(Spacer(1, 4))
 
-    # Adjustment methodology note
-    subj_imp = subject.get("improvement_value") or 0
-    class_rate = subj_imp / sqft if sqft and subj_imp else 0
     elements.append(Paragraph(
-        f"Base values: 2025 certified (comps) vs 2026 proposed (subject). "
-        f"Adjustments use EPCAD data: Living Area at "
-        f"{_psf(class_rate)}/sqft, Land Value from roll, "
-        f"Year Built at $500/year.",
+        f"EPCAD class rates: Living Area ${RATE_MAIN:.2f}/sqft (R4 main), "
+        f"Garage ${RATE_GARAGE:.0f}/sqft, Land ${RATE_LAND:.0f}/sqft delta. "
+        f"Component adjustments (Garage, Porch, Pool) require per-comp API "
+        f"data — shown as dashes when unavailable.",
         ss["SectionNote"]))
     elements.append(Spacer(1, 8))
 
@@ -708,6 +738,30 @@ def _page4_tier3(subject, comps, recommendation, ss):
         elements.append(Paragraph(
             f"<b>E&U suggested value: {_dollar(t3_val)}</b>", ss["Normal"]))
     elements.append(Spacer(1, 8))
+
+    # ---- Chuco-style callout box ----
+    if med_psf and pct and pct > 0:
+        diff_dollar = round(appraised - (med_psf * sqft))
+        below_count = len([c for c in comps if c.get("appr_psf")
+                           and c["appr_psf"] < subj_psf])
+        box_text = (
+            f"<b>Median: {_psf(med_psf)}/sqft</b> &nbsp;|&nbsp; "
+            f"<b>Difference: {_dollar(diff_dollar)} ({pct:.1f}%)</b> &nbsp;|&nbsp; "
+            f"<b>{below_count}/{len(comps)} below EPCAD</b>")
+        box_data = [[Paragraph(box_text,
+                     ParagraphStyle("_callout", fontSize=10, leading=14,
+                                    alignment=TA_CENTER, textColor=NAVY,
+                                    fontName="Helvetica-Bold"))]]
+        box_tbl = Table(box_data, colWidths=[6.2 * inch])
+        box_tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fef9e7")),
+            ("BORDER", (0, 0), (-1, -1), 1.5, GOLD),
+            ("BOX", (0, 0), (-1, -1), 1.5, GOLD),
+            ("TOPPADDING", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(box_tbl)
+        elements.append(Spacer(1, 8))
 
     # Flag expanded search area comps
     expanded = [c for c in comps if c.get("distance_miles") is not None
@@ -1067,13 +1121,243 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
     return elements
 
 
+def _page_value_history(subject, ss, protest_year):
+    """Value History page — 2021-2026 roll history from EPCAD API."""
+    elements = []
+    elements.append(Paragraph(
+        "VALUE HISTORY — EPCAD APPRAISAL ROLL (2021-2026)", ss["TierHeader"]))
+    elements.append(Spacer(1, 10))
+
+    roll = subject.get("_roll_history") or []
+    if not roll:
+        elements.append(Paragraph(
+            "Roll value history is not available for this property. "
+            "History requires an EPCAD API lookup.", ss["Normal"]))
+        return elements
+
+    roll_sorted = sorted(roll, key=lambda r: r.get("Year", 0))
+
+    headers = ["Year", "Appraised", "Land", "Improvement",
+               "HSCap", "Assessed", "YoY Change"]
+    rows = [headers]
+    prev_appr = None
+    first_appr = None
+    first_land = None
+
+    for rv in roll_sorted:
+        yr = rv.get("Year", 0)
+        appr = rv.get("Appraised") or rv.get("Appraised", 0)
+        land = rv.get("LandMarket") or 0
+        imp = rv.get("Improvements") or 0
+        hscap = rv.get("HSCap") or 0
+        assessed = rv.get("Assessed") or 0
+
+        if first_appr is None and appr:
+            first_appr = appr
+            first_land = land
+
+        if prev_appr and prev_appr > 0 and appr:
+            chg_pct = (appr - prev_appr) / prev_appr * 100
+            chg_str = f"{chg_pct:+.1f}%"
+        else:
+            chg_pct = None
+            chg_str = "—"
+
+        # Flag: >10% increase with HSCap = 0 (cap not applied)
+        flag = ""
+        if chg_pct and chg_pct > 10 and hscap == 0:
+            flag = " *"
+
+        rows.append([
+            str(yr),
+            _dollar(appr),
+            _dollar(land),
+            _dollar(imp),
+            _dollar(hscap) if hscap else "—",
+            _dollar(assessed),
+            chg_str + flag,
+        ])
+        prev_appr = appr
+
+    col_w = [0.5*inch, 0.9*inch, 0.85*inch, 0.9*inch,
+             0.7*inch, 0.9*inch, 0.8*inch]
+    tbl = Table(rows, colWidths=col_w)
+    style_cmds = _table_style_base()
+    _alt_row_shading(style_cmds, len(rows) - 1)
+    # Highlight the current protest year row
+    for i, rv in enumerate(roll_sorted):
+        if rv.get("Year") == protest_year:
+            style_cmds.append(
+                ("FONTNAME", (0, i + 1), (-1, i + 1), "Helvetica-Bold"))
+            style_cmds.append(
+                ("BACKGROUND", (0, i + 1), (-1, i + 1), MED_GRAY))
+    tbl.setStyle(TableStyle(style_cmds))
+    elements.append(tbl)
+    elements.append(Spacer(1, 4))
+
+    elements.append(Paragraph(
+        "* Year-over-year increase exceeded 10% with no homestead cap applied "
+        "(HSCap = $0). Under §23.23, homesteaded properties are capped at 10% "
+        "annual increase — a missing cap may indicate a reappraisal reset or "
+        "recent purchase.", ss["SectionNote"]))
+    elements.append(Spacer(1, 12))
+
+    # Narrative summary
+    last_appr = roll_sorted[-1].get("Appraised") or 0 if roll_sorted else 0
+    last_land = roll_sorted[-1].get("LandMarket") or 0 if roll_sorted else 0
+
+    if first_appr and last_appr and first_appr > 0:
+        total_pct = (last_appr - first_appr) / first_appr * 100
+        years = (roll_sorted[-1].get("Year", 0) -
+                 roll_sorted[0].get("Year", 0))
+        elements.append(Paragraph(
+            f"Over the past {years} years, EPCAD increased the appraised value "
+            f"of this property by <b>{_dollar(round(last_appr - first_appr))} "
+            f"(+{total_pct:.0f}%)</b>, from {_dollar(first_appr)} to "
+            f"{_dollar(last_appr)}.", ss["Normal"]))
+
+    if first_land and last_land and first_land > 0:
+        land_pct = (last_land - first_land) / first_land * 100
+        elements.append(Paragraph(
+            f"<b>Land value alone increased {land_pct:.0f}%</b> "
+            f"({_dollar(first_land)} to {_dollar(last_land)}). "
+            f"Land revaluations are the most common source of aggressive "
+            f"increases and the most attackable at an ARB hearing.",
+            ss["Normal"]))
+
+    # Flag uncapped years
+    uncapped = []
+    prev = None
+    for rv in roll_sorted:
+        appr = rv.get("Appraised") or 0
+        hscap = rv.get("HSCap") or 0
+        if prev and prev > 0 and appr > 0:
+            pct = (appr - prev) / prev * 100
+            if pct > 10 and hscap == 0:
+                uncapped.append((rv.get("Year"), pct))
+        prev = appr
+
+    if uncapped:
+        years_str = ", ".join(f"{y} (+{p:.0f}%)" for y, p in uncapped)
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph(
+            f"<b>Warning:</b> In {years_str}, the appraised value increased "
+            f"more than 10% with no homestead cap reduction. This suggests "
+            f"either the homestead was not filed or the cap basis was reset "
+            f"(e.g., after a sale). Review your homestead filing status.",
+            ss["Normal"]))
+
+    return elements
+
+
+def _page_hearing_script(subject, recommendation, tier1_comps, tier3_comps,
+                         ss, protest_year):
+    """Hearing script page with property-specific values filled in."""
+    elements = []
+    elements.append(Paragraph(
+        "WHAT TO SAY AT YOUR ARB HEARING", ss["TierHeader"]))
+    elements.append(Spacer(1, 12))
+
+    body = ss["CoverBody"]
+    addr = f"{subject['situs_address'] or ''}, " \
+           f"{subject['situs_city'] or ''} {subject['situs_zip'] or ''}"
+    appraised = subject["appraised_value"] or 0
+    rec_val = recommendation.get("recommended_value") or 0
+    t1_val = recommendation.get("tier1_value")
+    t3_val = recommendation.get("tier3_value")
+    pct = recommendation.get("tier3_pct_above")
+    t1_count = len(tier1_comps or [])
+    t3_count = len(tier3_comps or [])
+
+    elements.append(Paragraph(
+        "The hearing is informal. You sit at a table with 1-3 panel members "
+        "and an EPCAD appraiser. Read the script below — it uses your actual "
+        "property data.", body))
+    elements.append(Spacer(1, 10))
+
+    # Boxed script with gold border
+    script_lines = []
+    script_lines.append(
+        f"<i>\"Good morning. My name is [your name] and I am the owner of "
+        f"<b>{addr}</b>. I am protesting the {protest_year} appraised value "
+        f"of <b>{_dollar(appraised)}</b>.</i>")
+
+    if t1_val and t1_count:
+        script_lines.append(
+            f"<i>First, I have <b>{t1_count} comparable closed sales</b> from "
+            f"EPCAD deed records. After adjustments for size, age, and lot, "
+            f"the comparable sales support a market value of "
+            f"<b>{_dollar(t1_val)}</b>.</i>")
+
+    if t3_val and pct and t3_count:
+        script_lines.append(
+            f"<i>Second, EPCAD's own appraisal roll shows <b>{t3_count} "
+            f"comparable properties</b> in my neighborhood assessed at a "
+            f"lower per-square-foot rate. My home is assessed "
+            f"<b>{pct:.1f}% above the median</b> of these properties. Under "
+            f"Tex. Tax Code §41.43(b)(3), the appraised value must not "
+            f"exceed the median of comparable properties.</i>")
+
+    script_lines.append(
+        f"<i>Based on this evidence, I respectfully request my appraised "
+        f"value be reduced to <b>{_dollar(rec_val)}</b>. "
+        f"I have copies of my evidence for the panel.\"</i>")
+
+    script_text = "<br/><br/>".join(script_lines)
+    script_para = Paragraph(script_text,
+                            ParagraphStyle("_script", parent=body,
+                                           fontSize=10, leading=15,
+                                           leftIndent=8, rightIndent=8))
+    box = Table([[script_para]], colWidths=[6.2 * inch])
+    box.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 1.5, GOLD),
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fef9e7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(box)
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph(
+        "Then hand them the printed copies. Answer any questions honestly. "
+        "You do not need to be an expert — the evidence speaks for itself.",
+        body))
+    elements.append(Spacer(1, 12))
+
+    bold = ss["CoverBold"]
+    elements.append(Paragraph("TIPS", bold))
+    elements.append(Paragraph(
+        "1. <b>Stay calm and factual.</b> The panel respects data, not emotion.",
+        body))
+    elements.append(Paragraph(
+        "2. <b>Lead with your strongest tier.</b> If Tier 1 closed sales "
+        "are compelling, start there. If E&U is stronger, lead with that.",
+        body))
+    elements.append(Paragraph(
+        "3. <b>Bring photos</b> of any condition issues (roof, foundation, "
+        "outdated interior). The panel has never been inside your home.",
+        body))
+    elements.append(Paragraph(
+        "4. <b>Don't accept the first counter-offer</b> without comparing "
+        "it to your evidence. You can say \"I'd like the panel to decide "
+        "based on the evidence.\"", body))
+    elements.append(Paragraph(
+        f"5. <b>Know your number:</b> {_dollar(rec_val)}. Don't settle "
+        f"for more than this unless EPCAD presents compelling evidence.",
+        body))
+
+    return elements
+
+
 # ---------------------------------------------------------------------------
 # Main PDF builder
 # ---------------------------------------------------------------------------
 
 def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
                  output_path=None, tier2_comps=None):
-    """Build the 7-page protest PDF."""
+    """Build the protest PDF packet."""
     protest_year = config.get("protest_year", 2026)
     acct = subject["account_number"]
 
@@ -1116,11 +1400,23 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     elements += _page5_cover_letter(subject, recommendation, ss, protest_year)
     elements.append(PageBreak())
 
-    # Page 6 — How to use this report
+    # Page 6 — Value History (from API roll data)
+    history_elems = _page_value_history(subject, ss, protest_year)
+    if history_elems:
+        elements += history_elems
+        elements.append(PageBreak())
+
+    # Page 7 — Hearing Script (property-specific)
+    elements += _page_hearing_script(subject, recommendation,
+                                     tier1_comps, tier3_comps,
+                                     ss, protest_year)
+    elements.append(PageBreak())
+
+    # Page 8 — How to use this report
     elements += _page6_how_to_use(ss, protest_year)
     elements.append(PageBreak())
 
-    # Page 7 — Proximity analysis
+    # Page 9 — Proximity analysis
     elements += _page7_proximity(subject, tier1_comps, tier3_comps, ss)
 
     def _on_page(canvas, doc_obj):
