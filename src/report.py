@@ -103,6 +103,30 @@ def _table_style_base():
     ]
 
 
+def _tier_banner(text, width=7.2):
+    """Render a tier section heading as a full-width navy table cell.
+
+    Uses an explicit Table instead of a Paragraph with backColor so we
+    get reliable control over row height, padding, and text wrapping.
+    """
+    para = Paragraph(
+        f"<b>{text}</b>",
+        ParagraphStyle("_banner_text", fontName="Helvetica-Bold",
+                        fontSize=10, leading=13, textColor=GOLD,
+                        alignment=TA_LEFT, wordWrap="CJK"))
+    tbl = Table([[para]], colWidths=[width * inch], rowHeights=[28])
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), NAVY),
+        ("TEXTCOLOR", (0, 0), (-1, -1), GOLD),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    return tbl
+
+
 def _alt_row_shading(style_cmds, num_data_rows, start_row=1):
     for i in range(start_row, start_row + num_data_rows):
         if (i - start_row) % 2 == 1:
@@ -252,8 +276,7 @@ def _page1_summary(subject, recommendation, ss, protest_year):
     elements.append(Spacer(1, 14))
 
     # --- Three-tier evidence summary ---
-    elements.append(Paragraph(
-        "THREE-TIER EVIDENCE SUMMARY", ss["TierHeader"]))
+    elements.append(_tier_banner("THREE-TIER EVIDENCE SUMMARY"))
     elements.append(Spacer(1, 4))
 
     summary_data = [
@@ -274,8 +297,7 @@ def _page1_summary(subject, recommendation, ss, protest_year):
     elements.append(Spacer(1, 14))
 
     # Statutory references
-    elements.append(Paragraph(
-        "STATUTORY AUTHORITY", ss["TierHeader"]))
+    elements.append(_tier_banner("STATUTORY AUTHORITY"))
     elements.append(Spacer(1, 4))
     refs = [
         "Tex. Tax Code §41.41 — Right of Protest (market value + equal & uniform)",
@@ -299,8 +321,8 @@ def _page1_summary(subject, recommendation, ss, protest_year):
 def _page2_tier1(subject, comps, ss):
     """Page 2: Tier 1 closed sales URAR-style grid."""
     elements = []
-    elements.append(Paragraph(
-        "TIER 1: COMPARABLE CLOSED SALES (Strongest Evidence)", ss["TierHeader"]))
+    elements.append(_tier_banner(
+        "TIER 1: COMPARABLE CLOSED SALES (Strongest Evidence)"))
     elements.append(Spacer(1, 8))
 
     if not comps:
@@ -439,8 +461,8 @@ def _page2_tier1(subject, comps, ss):
 def _page3_tier2(subject, tier2_comps, ss, protest_year):
     """Page 3: Tier 2 active Redfin listings grid."""
     elements = []
-    elements.append(Paragraph(
-        "TIER 2: CURRENT ACTIVE LISTINGS (Market Direction)", ss["TierHeader"]))
+    elements.append(_tier_banner(
+        "TIER 2: CURRENT ACTIVE LISTINGS (Market Direction)"))
     elements.append(Spacer(1, 8))
 
     if not tier2_comps:
@@ -551,9 +573,8 @@ def _page4_tier3(subject, comps, recommendation, ss):
     """Page 4: Tier 3 Equal & Uniform grid — 2025 certified comps vs
     2026 proposed subject value (professional appraiser methodology)."""
     elements = []
-    elements.append(Paragraph(
-        "TIER 3: EQUAL & UNIFORM ANALYSIS (2025 Certified vs 2026 Proposed)",
-        ss["TierHeader"]))
+    elements.append(_tier_banner(
+        "TIER 3: EQUAL & UNIFORM ANALYSIS (2025 Certified vs 2026 Proposed)"))
     elements.append(Spacer(1, 4))
     elements.append(Paragraph(
         "<b>Methodology:</b> Subject uses 2026 proposed value. Comparable "
@@ -730,9 +751,8 @@ def _page4_tier3(subject, comps, recommendation, ss):
     # ---- Statistical summary — force to top of new page ----
     elements.append(PageBreak())
 
-    elements.append(Paragraph(
-        "TIER 3: STATISTICAL SUMMARY & E&U ANALYSIS (continued)",
-        ss["TierHeader"]))
+    elements.append(_tier_banner(
+        "TIER 3: STATISTICAL SUMMARY & E&U ANALYSIS (continued)"))
     elements.append(Spacer(1, 8))
 
     indicated_vals = [c["t3_indicated_value"] for c in comps
@@ -846,7 +866,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
 def _page5_cover_letter(subject, recommendation, ss, protest_year):
     """Page 5: Cover letter for ARB."""
     elements = []
-    elements.append(Paragraph("PROTEST COVER LETTER", ss["TierHeader"]))
+    elements.append(_tier_banner("PROTEST COVER LETTER"))
     elements.append(Spacer(1, 16))
 
     acct = subject["account_number"]
@@ -944,8 +964,7 @@ def _page5_cover_letter(subject, recommendation, ss, protest_year):
 def _page6_how_to_use(ss, protest_year):
     """Page 6: How to use this report — plain English guide for homeowners."""
     elements = []
-    elements.append(Paragraph(
-        "HOW TO USE THIS REPORT", ss["TierHeader"]))
+    elements.append(_tier_banner("HOW TO USE THIS REPORT"))
     elements.append(Spacer(1, 10))
 
     body = ss["CoverBody"]
@@ -1066,8 +1085,7 @@ def _page6_how_to_use(ss, protest_year):
 def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
     """Page 7: Proximity analysis — distance table for all comps."""
     elements = []
-    elements.append(Paragraph(
-        "COMPARABLE PROPERTIES — PROXIMITY ANALYSIS", ss["TierHeader"]))
+    elements.append(_tier_banner("COMPARABLE PROPERTIES — PROXIMITY ANALYSIS"))
     elements.append(Spacer(1, 10))
 
     # Collect all comp entries with $/sqft and indicated value
@@ -1202,8 +1220,8 @@ def _page7_proximity(subject, tier1_comps, tier3_comps, ss):
 def _page_value_history(subject, ss, protest_year):
     """Value History page — 2021-2026 roll history from EPCAD API."""
     elements = []
-    elements.append(Paragraph(
-        "VALUE HISTORY — EPCAD APPRAISAL ROLL (2021-2026)", ss["TierHeader"]))
+    elements.append(_tier_banner(
+        "VALUE HISTORY — EPCAD APPRAISAL ROLL (2021-2026)"))
     elements.append(Spacer(1, 10))
 
     roll = subject.get("_roll_history") or []
@@ -1332,8 +1350,7 @@ def _page_hearing_script(subject, recommendation, tier1_comps, tier3_comps,
                          ss, protest_year):
     """Hearing script page with property-specific values filled in."""
     elements = []
-    elements.append(Paragraph(
-        "WHAT TO SAY AT YOUR ARB HEARING", ss["TierHeader"]))
+    elements.append(_tier_banner("WHAT TO SAY AT YOUR ARB HEARING"))
     elements.append(Spacer(1, 12))
 
     body = ss["CoverBody"]
