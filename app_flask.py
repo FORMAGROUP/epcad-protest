@@ -117,26 +117,32 @@ def _run_analysis(address, zipcode, result_holder):
         pct_over = rec.get("tier3_pct_above")
 
         # --- Year-over-year value change ---
-        prior_value = None
+        # Use API-provided prior year value if available, else query SQLite
+        prior_value = subject.get("prior_appraised_value")
+        if not prior_value:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT prior_appraised_value FROM properties "
+                "WHERE account_number = ?",
+                (subject["account_number"],))
+            row = cur.fetchone()
+            if row and row[0]:
+                prior_value = row[0]
         yoy_pct = None
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT prior_appraised_value FROM properties "
-            "WHERE account_number = ?",
-            (subject["account_number"],))
-        row = cur.fetchone()
-        if row and row[0] and row[0] > 0 and appraised > 0:
-            prior_value = row[0]
+        if prior_value and prior_value > 0 and appraised > 0:
             yoy_pct = round((appraised - prior_value) / prior_value * 100, 1)
 
         # --- Homestead exemption check ---
-        has_homestead = False
-        cur.execute(
-            "SELECT homestead FROM properties WHERE account_number = ?",
-            (subject["account_number"],))
-        hs_row = cur.fetchone()
-        if hs_row and hs_row[0]:
-            has_homestead = bool(hs_row[0])
+        # Use API-provided homestead flag if available, else query SQLite
+        has_homestead = bool(subject.get("homestead"))
+        if not has_homestead and not subject.get("_api_source"):
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT homestead FROM properties WHERE account_number = ?",
+                (subject["account_number"],))
+            hs_row = cur.fetchone()
+            if hs_row and hs_row[0]:
+                has_homestead = bool(hs_row[0])
 
         # Determine if property appears owner-occupied residential
         is_residential = (subject.get("state_class_code") or "").startswith("A")

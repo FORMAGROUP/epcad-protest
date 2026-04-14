@@ -49,10 +49,34 @@ def _strip_city_state(address):
 
 
 def find_subject(conn, account=None, address=None, zipcode=None):
-    """Look up the subject property by account number or address fragment.
+    """Look up the subject property — EPCAD API first, SQLite fallback.
 
-    If zipcode is provided, results are filtered to that ZIP first.
+    The API returns richer data (owner name, exemptions, improvement
+    detail, deed history, roll value history) than the flat-file DB.
+    SQLite is used as a fallback if the API is unreachable.
     """
+    # --- Try EPCAD live API first ---
+    try:
+        from epcad_api import get_property
+        year = load_config().get("protest_year", 2026)
+        result = get_property(address=address, account=account, year=year)
+        if result:
+            print(f"  [EPCAD API] Found: {result['account_number']} "
+                  f"— {result['situs_address']}")
+            return result
+        print("  [EPCAD API] No result, falling back to local DB.",
+              file=sys.stderr)
+    except Exception as e:
+        print(f"  [EPCAD API] Unavailable ({e}), using local DB.",
+              file=sys.stderr)
+
+    # --- SQLite fallback ---
+    return _find_subject_sqlite(conn, account=account, address=address,
+                                zipcode=zipcode)
+
+
+def _find_subject_sqlite(conn, account=None, address=None, zipcode=None):
+    """SQLite-based subject lookup (original implementation)."""
     cur = conn.cursor()
     if account:
         cur.execute("SELECT * FROM properties WHERE account_number = ?", (account,))
@@ -124,7 +148,7 @@ def find_subject(conn, account=None, address=None, zipcode=None):
         # If ZIP was provided and nothing found, retry without ZIP filter
         if zip_params:
             print(f"No match in ZIP {zipcode}, retrying without ZIP filter...")
-            return find_subject(conn, address=address, zipcode=None)
+            return _find_subject_sqlite(conn, address=address, zipcode=None)
 
     print("ERROR: Property not found.", file=sys.stderr)
     sys.exit(1)
