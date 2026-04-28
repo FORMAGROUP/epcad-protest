@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from comps import load_config, get_db, find_subject, tier1_closed_sales, tier3_equal_uniform
 from listings import fetch_and_store, find_tier2_comps
-from scorer import adjust_tier1, final_recommendation
+from scorer import adjust_tier1, final_recommendation, calculate_protest_score
 from report import generate_pdf
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -81,11 +81,13 @@ def _run_analysis(address, zipcode, result_holder):
         t2 = find_tier2_comps(conn, subject, config)
         t3 = tier3_equal_uniform(conn, subject, config)
         rec = final_recommendation(subject, t1, t3, config, tier2_comps=t2)
+        score = calculate_protest_score(subject, t1, t2, t3, rec)
 
         # Generate PDF and store with a random ID
         pdf_id = uuid.uuid4().hex[:12]
         pdf_path = os.path.join(PDF_DIR, f"{pdf_id}.pdf")
-        generate_pdf(subject, t1, t3, rec, config, pdf_path, tier2_comps=t2)
+        generate_pdf(subject, t1, t3, rec, config, pdf_path,
+                     tier2_comps=t2, score=score)
 
         # Build tier 1 comp list for preview
         t1_comps = []
@@ -188,6 +190,7 @@ def _run_analysis(address, zipcode, result_holder):
                 "tier2": len(t2),
                 "tier3": len(t3),
             },
+            "score": score,
             "tier1_comps": t1_comps,
             "tier3_comps": t3_comps,
             "pdf_id": pdf_id,

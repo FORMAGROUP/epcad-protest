@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_e8c9b8ce051a67c2ea9f8021de10872b {
+                    position: relative;
+                    width: 680.0px;
+                    height: 500.0px;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_e8c9b8ce051a67c2ea9f8021de10872b" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_e8c9b8ce051a67c2ea9f8021de10872b = L.map(
+                "map_e8c9b8ce051a67c2ea9f8021de10872b",
+                {
+                    center: [31.841691114721577, -106.51933019892284],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 15,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_a2d1b5e99a140bc27ee6d29af460ede5 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_a2d1b5e99a140bc27ee6d29af460ede5.addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var marker_cafed106768e8e13655141d57d8a34b6 = L.marker(
+                [31.841691114721577, -106.51933019892284],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_9800725c1a12b586ef745e197b49b426 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1d3c37feb1017fee84865680c5b729ee = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d4627b656712e4499b2e1752b3d2a65a = $(`<div id="html_d4627b656712e4499b2e1752b3d2a65a" style="width: 100.0%; height: 100.0%;">SUBJECT: 705 TWIN HILLS DR</div>`)[0];
+                popup_1d3c37feb1017fee84865680c5b729ee.setContent(html_d4627b656712e4499b2e1752b3d2a65a);
+            
+        
+
+        marker_cafed106768e8e13655141d57d8a34b6.bindPopup(popup_1d3c37feb1017fee84865680c5b729ee)
+        ;
+
+        
+    
+    
+            marker_cafed106768e8e13655141d57d8a34b6.bindTooltip(
+                `<div>
+                     SUBJECT
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_cafed106768e8e13655141d57d8a34b6.setIcon(icon_9800725c1a12b586ef745e197b49b426);
+            
+    
+            var circle_5f0eb67f73d48809aad728a651cfdb78 = L.circle(
+                [31.841691114721577, -106.51933019892284],
+                {"bubblingMouseEvents": true, "color": "#C8920A", "dashArray": "5,5", "dashOffset": null, "fill": false, "fillColor": "#C8920A", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 804.672, "stroke": true, "weight": 1.5}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            circle_5f0eb67f73d48809aad728a651cfdb78.bindTooltip(
+                `<div>
+                     0.5 mile radius
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_56fc07b664c87d6c51a6d7409af150b5 = L.circle(
+                [31.841691114721577, -106.51933019892284],
+                {"bubblingMouseEvents": true, "color": "#666666", "dashArray": "8,4", "dashOffset": null, "fill": false, "fillColor": "#666666", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 1609.344, "stroke": true, "weight": 1}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            circle_56fc07b664c87d6c51a6d7409af150b5.bindTooltip(
+                `<div>
+                     1.0 mile radius
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fa5893c64ca754e2ac18e242ab38ff89 = L.marker(
+                [31.841784061722535, -106.51501320610886],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_63a8b696a4a26f447a0b20f85097720c = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_5e33552c0c83e7ed45821511124d69a0 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_513e7236a8050c3d2e55cbfabf46e5d2 = $(`<div id="html_513e7236a8050c3d2e55cbfabf46e5d2" style="width: 100.0%; height: 100.0%;">Tier 1: 808 WINGFOOTE RD (0.25 mi)</div>`)[0];
+                popup_5e33552c0c83e7ed45821511124d69a0.setContent(html_513e7236a8050c3d2e55cbfabf46e5d2);
+            
+        
+
+        marker_fa5893c64ca754e2ac18e242ab38ff89.bindPopup(popup_5e33552c0c83e7ed45821511124d69a0)
+        ;
+
+        
+    
+    
+            marker_fa5893c64ca754e2ac18e242ab38ff89.bindTooltip(
+                `<div>
+                     808 WINGFOOTE RD — 0.25 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_fa5893c64ca754e2ac18e242ab38ff89.setIcon(icon_63a8b696a4a26f447a0b20f85097720c);
+            
+    
+            var marker_ecb8a3bb5700eeb811486b6124cf6af3 = L.marker(
+                [31.846591358158175, -106.51257335083352],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_00b058093086e8b5cc77d095c3ff2d61 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d7c9e5fcb23edd4e780a5921ef7db52e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_98819af0718e6472c1c303f117acc2a3 = $(`<div id="html_98819af0718e6472c1c303f117acc2a3" style="width: 100.0%; height: 100.0%;">Tier 1: 921 THUNDERBIRD DR (0.52 mi)</div>`)[0];
+                popup_d7c9e5fcb23edd4e780a5921ef7db52e.setContent(html_98819af0718e6472c1c303f117acc2a3);
+            
+        
+
+        marker_ecb8a3bb5700eeb811486b6124cf6af3.bindPopup(popup_d7c9e5fcb23edd4e780a5921ef7db52e)
+        ;
+
+        
+    
+    
+            marker_ecb8a3bb5700eeb811486b6124cf6af3.bindTooltip(
+                `<div>
+                     921 THUNDERBIRD DR — 0.52 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ecb8a3bb5700eeb811486b6124cf6af3.setIcon(icon_00b058093086e8b5cc77d095c3ff2d61);
+            
+    
+            var marker_d7f568862e4042ae9929b245515980d7 = L.marker(
+                [31.841878168576205, -106.53614162840712],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_fbb8aa5365e31a2f815db65c8bf560c0 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_bc12a484dab144b040a0ec06786567a4 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d3cc90ae52558793e52264ac457b0281 = $(`<div id="html_d3cc90ae52558793e52264ac457b0281" style="width: 100.0%; height: 100.0%;">Tier 1: 328 WINDROSE PL (0.99 mi)</div>`)[0];
+                popup_bc12a484dab144b040a0ec06786567a4.setContent(html_d3cc90ae52558793e52264ac457b0281);
+            
+        
+
+        marker_d7f568862e4042ae9929b245515980d7.bindPopup(popup_bc12a484dab144b040a0ec06786567a4)
+        ;
+
+        
+    
+    
+            marker_d7f568862e4042ae9929b245515980d7.bindTooltip(
+                `<div>
+                     328 WINDROSE PL — 0.99 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d7f568862e4042ae9929b245515980d7.setIcon(icon_fbb8aa5365e31a2f815db65c8bf560c0);
+            
+    
+            var marker_f0a8254fa958f45f7fbef1b5144976d9 = L.marker(
+                [31.841426493621107, -106.51975043871336],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_b9e860fbd3921be86bc32658d4a474ee = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6be9d80d9f04e506b2ab93161896a167 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_17e11fea0f916ff9622542d61655e37d = $(`<div id="html_17e11fea0f916ff9622542d61655e37d" style="width: 100.0%; height: 100.0%;">Tier 3: 701 TWIN HILLS DR (0.03 mi)</div>`)[0];
+                popup_6be9d80d9f04e506b2ab93161896a167.setContent(html_17e11fea0f916ff9622542d61655e37d);
+            
+        
+
+        marker_f0a8254fa958f45f7fbef1b5144976d9.bindPopup(popup_6be9d80d9f04e506b2ab93161896a167)
+        ;
+
+        
+    
+    
+            marker_f0a8254fa958f45f7fbef1b5144976d9.bindTooltip(
+                `<div>
+                     701 TWIN HILLS DR — 0.03 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_f0a8254fa958f45f7fbef1b5144976d9.setIcon(icon_b9e860fbd3921be86bc32658d4a474ee);
+            
+    
+            var marker_8efaa6a5c39f878c843495ecdfce572d = L.marker(
+                [31.841358982858907, -106.51826512643514],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_cd5f2d8b6ece4553d528f6193438a817 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_28ca11b49c1c6793c377e1de5d27cb88 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a08c0b5038566cb496703e3e3873064c = $(`<div id="html_a08c0b5038566cb496703e3e3873064c" style="width: 100.0%; height: 100.0%;">Tier 3: 708 TWIN HILLS DR (0.07 mi)</div>`)[0];
+                popup_28ca11b49c1c6793c377e1de5d27cb88.setContent(html_a08c0b5038566cb496703e3e3873064c);
+            
+        
+
+        marker_8efaa6a5c39f878c843495ecdfce572d.bindPopup(popup_28ca11b49c1c6793c377e1de5d27cb88)
+        ;
+
+        
+    
+    
+            marker_8efaa6a5c39f878c843495ecdfce572d.bindTooltip(
+                `<div>
+                     708 TWIN HILLS DR — 0.07 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8efaa6a5c39f878c843495ecdfce572d.setIcon(icon_cd5f2d8b6ece4553d528f6193438a817);
+            
+    
+            var marker_7d15fbb70f8b8c75ecac7879b54e2ff8 = L.marker(
+                [31.842657896693726, -106.51751626177808],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_a5fcfbfde56e8f5b16c1b9a3d26f4f0a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d97c666b3e35358250c541d81778e001 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1e9a701c9eb0b9c720e16a1db1ac65da = $(`<div id="html_1e9a701c9eb0b9c720e16a1db1ac65da" style="width: 100.0%; height: 100.0%;">Tier 3: 725 TWIN HILLS DR (0.13 mi)</div>`)[0];
+                popup_d97c666b3e35358250c541d81778e001.setContent(html_1e9a701c9eb0b9c720e16a1db1ac65da);
+            
+        
+
+        marker_7d15fbb70f8b8c75ecac7879b54e2ff8.bindPopup(popup_d97c666b3e35358250c541d81778e001)
+        ;
+
+        
+    
+    
+            marker_7d15fbb70f8b8c75ecac7879b54e2ff8.bindTooltip(
+                `<div>
+                     725 TWIN HILLS DR — 0.13 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_7d15fbb70f8b8c75ecac7879b54e2ff8.setIcon(icon_a5fcfbfde56e8f5b16c1b9a3d26f4f0a);
+            
+    
+            var marker_37a8f0437e5c116da39a5af73ae8ec3b = L.marker(
+                [31.842183238864973, -106.51700223360501],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_094fb47539d93cbc21405cec59568d15 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_b968093ad2f74451899c74aa56bacfce = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7272721d36614089737d77e84f6e7f74 = $(`<div id="html_7272721d36614089737d77e84f6e7f74" style="width: 100.0%; height: 100.0%;">Tier 3: 724 TWIN HILLS DR (0.14 mi)</div>`)[0];
+                popup_b968093ad2f74451899c74aa56bacfce.setContent(html_7272721d36614089737d77e84f6e7f74);
+            
+        
+
+        marker_37a8f0437e5c116da39a5af73ae8ec3b.bindPopup(popup_b968093ad2f74451899c74aa56bacfce)
+        ;
+
+        
+    
+    
+            marker_37a8f0437e5c116da39a5af73ae8ec3b.bindTooltip(
+                `<div>
+                     724 TWIN HILLS DR — 0.14 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_37a8f0437e5c116da39a5af73ae8ec3b.setIcon(icon_094fb47539d93cbc21405cec59568d15);
+            
+    
+            var marker_8223e3eb44fe39153798f95f15989380 = L.marker(
+                [31.84181180369416, -106.51681268387748],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_90c4ff3f7bb2bc290bfffef4020bed64 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_0eed961bc1b76de7503251e2433fd4c5 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_42ddc3c442f10a56f85d300d54984444 = $(`<div id="html_42ddc3c442f10a56f85d300d54984444" style="width: 100.0%; height: 100.0%;">Tier 3: 5924 GREENBRIER RD (0.15 mi)</div>`)[0];
+                popup_0eed961bc1b76de7503251e2433fd4c5.setContent(html_42ddc3c442f10a56f85d300d54984444);
+            
+        
+
+        marker_8223e3eb44fe39153798f95f15989380.bindPopup(popup_0eed961bc1b76de7503251e2433fd4c5)
+        ;
+
+        
+    
+    
+            marker_8223e3eb44fe39153798f95f15989380.bindTooltip(
+                `<div>
+                     5924 GREENBRIER RD — 0.15 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8223e3eb44fe39153798f95f15989380.setIcon(icon_90c4ff3f7bb2bc290bfffef4020bed64);
+            
+    
+            var marker_5164d9542a2da3ea736da8718d08ad3a = L.marker(
+                [31.842924330891787, -106.51675047624077],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_b93dd4f27d5378b7716a12c12b98b440 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_c47dc622e9d7751e281742a103d6416a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_376fa3ef8b8fc6b8f787508e935773da = $(`<div id="html_376fa3ef8b8fc6b8f787508e935773da" style="width: 100.0%; height: 100.0%;">Tier 3: 801 TWIN HILLS DR (0.17 mi)</div>`)[0];
+                popup_c47dc622e9d7751e281742a103d6416a.setContent(html_376fa3ef8b8fc6b8f787508e935773da);
+            
+        
+
+        marker_5164d9542a2da3ea736da8718d08ad3a.bindPopup(popup_c47dc622e9d7751e281742a103d6416a)
+        ;
+
+        
+    
+    
+            marker_5164d9542a2da3ea736da8718d08ad3a.bindTooltip(
+                `<div>
+                     801 TWIN HILLS DR — 0.17 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_5164d9542a2da3ea736da8718d08ad3a.setIcon(icon_b93dd4f27d5378b7716a12c12b98b440);
+            
+    
+            var marker_6036c9f9beb2b119f0b5a12a83255b6a = L.marker(
+                [31.84306988434986, -106.51634096393336],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_60e6553c362b4d68c14f241d75642225 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_f0577156b89274db2b136ed946daf93a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0f3f413b37c246ce9c0bd3afec5dc48d = $(`<div id="html_0f3f413b37c246ce9c0bd3afec5dc48d" style="width: 100.0%; height: 100.0%;">Tier 3: 805 TWIN HILLS DR (0.20 mi)</div>`)[0];
+                popup_f0577156b89274db2b136ed946daf93a.setContent(html_0f3f413b37c246ce9c0bd3afec5dc48d);
+            
+        
+
+        marker_6036c9f9beb2b119f0b5a12a83255b6a.bindPopup(popup_f0577156b89274db2b136ed946daf93a)
+        ;
+
+        
+    
+    
+            marker_6036c9f9beb2b119f0b5a12a83255b6a.bindTooltip(
+                `<div>
+                     805 TWIN HILLS DR — 0.20 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_6036c9f9beb2b119f0b5a12a83255b6a.setIcon(icon_60e6553c362b4d68c14f241d75642225);
+            
+    
+            var marker_a479413d1fef1f4d2d45d8c829eb4137 = L.marker(
+                [31.84501400959248, -106.51851510532644],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_f887d3b2c6a663f28054f29f0dba03a3 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_c051f8aedc324ca33688c509175adc17 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d31454a209ef9325e588af78aad2feb7 = $(`<div id="html_d31454a209ef9325e588af78aad2feb7" style="width: 100.0%; height: 100.0%;">Tier 3: 834 RIVER OAKS DR (0.23 mi)</div>`)[0];
+                popup_c051f8aedc324ca33688c509175adc17.setContent(html_d31454a209ef9325e588af78aad2feb7);
+            
+        
+
+        marker_a479413d1fef1f4d2d45d8c829eb4137.bindPopup(popup_c051f8aedc324ca33688c509175adc17)
+        ;
+
+        
+    
+    
+            marker_a479413d1fef1f4d2d45d8c829eb4137.bindTooltip(
+                `<div>
+                     834 RIVER OAKS DR — 0.23 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a479413d1fef1f4d2d45d8c829eb4137.setIcon(icon_f887d3b2c6a663f28054f29f0dba03a3);
+            
+    
+            var marker_eaaf2a19c093bd9d8326966942bf75a7 = L.marker(
+                [31.842136855506617, -106.52360008575212],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_475e09f1119c47bab75c5d6fc3eff093 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_2deaebc4012b35c7d711f593df6ae641 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f8bf61a9226c7c37f1e5a716bcfaf256 = $(`<div id="html_f8bf61a9226c7c37f1e5a716bcfaf256" style="width: 100.0%; height: 100.0%;">Tier 3: 604 SATELLITE DR (0.25 mi)</div>`)[0];
+                popup_2deaebc4012b35c7d711f593df6ae641.setContent(html_f8bf61a9226c7c37f1e5a716bcfaf256);
+            
+        
+
+        marker_eaaf2a19c093bd9d8326966942bf75a7.bindPopup(popup_2deaebc4012b35c7d711f593df6ae641)
+        ;
+
+        
+    
+    
+            marker_eaaf2a19c093bd9d8326966942bf75a7.bindTooltip(
+                `<div>
+                     604 SATELLITE DR — 0.25 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_eaaf2a19c093bd9d8326966942bf75a7.setIcon(icon_475e09f1119c47bab75c5d6fc3eff093);
+            
+    
+            var marker_e88ed8a01f07fe33d9b74ebebd803683 = L.marker(
+                [31.842861545526436, -106.51517325599282],
+                {
+}
+            ).addTo(map_e8c9b8ce051a67c2ea9f8021de10872b);
+        
+    
+            var icon_1522b5f78c9b00c0423ead4768d29109 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_76ce52736e5e2e87b15b2a838c06db15 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_72a9e93668c8036a76dfcf70cce7f9f2 = $(`<div id="html_72a9e93668c8036a76dfcf70cce7f9f2" style="width: 100.0%; height: 100.0%;">Tier 3: 812 TWIN HILLS DR (0.26 mi)</div>`)[0];
+                popup_76ce52736e5e2e87b15b2a838c06db15.setContent(html_72a9e93668c8036a76dfcf70cce7f9f2);
+            
+        
+
+        marker_e88ed8a01f07fe33d9b74ebebd803683.bindPopup(popup_76ce52736e5e2e87b15b2a838c06db15)
+        ;
+
+        
+    
+    
+            marker_e88ed8a01f07fe33d9b74ebebd803683.bindTooltip(
+                `<div>
+                     812 TWIN HILLS DR — 0.26 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_e88ed8a01f07fe33d9b74ebebd803683.setIcon(icon_1522b5f78c9b00c0423ead4768d29109);
+            
+</script>
+</html>

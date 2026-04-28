@@ -114,6 +114,22 @@
     border-radius:8px; margin-top:0.75rem; max-width:800px; display:none;
   }
 
+  .hero-stats {
+    display:flex; gap:2rem; flex-wrap:wrap;
+    margin-bottom:1.6rem; max-width:800px;
+    padding:0.85rem 0;
+    border-top:1px solid rgba(255,255,255,0.1);
+    border-bottom:1px solid rgba(255,255,255,0.1);
+  }
+  .hero-stat { display:flex; align-items:baseline; gap:0.55rem; flex:1; min-width:240px; }
+  .hero-stat-num {
+    font-family:'Bodoni Moda',serif; font-size:1.85rem; font-weight:900;
+    color:var(--gold); line-height:1; letter-spacing:-1px;
+  }
+  .hero-stat-text {
+    color:rgba(255,255,255,0.75); font-size:0.82rem; line-height:1.35;
+  }
+
   /* Progress indicator */
   .search-progress {
     display:none; max-width:800px; margin-top:1rem;
@@ -216,6 +232,75 @@
   .calc-savings-row td { border-top:2px solid var(--gold) !important; padding-top:0.9rem; }
   .calc-savings-row td:nth-child(3) { font-size:1.4rem; color:#4ADE80; }
   .calc-note { font-size:0.68rem; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
+
+  /* Protest Strength Score panel */
+  .strength-panel {
+    background:linear-gradient(180deg, #0E2548, #0B1F3A);
+    border:1px solid rgba(200,146,10,0.35);
+    border-radius:12px; padding:1.6rem 1.5rem 1.4rem;
+    margin-bottom:1.5rem;
+    box-shadow:0 6px 24px rgba(0,0,0,0.25);
+  }
+  .strength-hdr {
+    font-family:'DM Mono',monospace; font-size:0.62rem;
+    letter-spacing:2.5px; text-transform:uppercase;
+    color:rgba(200,146,10,0.85); text-align:center;
+    margin-bottom:0.85rem;
+  }
+  .strength-num {
+    font-family:'DM Mono',monospace; font-size:3.2rem;
+    font-weight:500; color:var(--gold); text-align:center;
+    line-height:1; letter-spacing:-2px; margin-bottom:0.1rem;
+  }
+  .strength-num small {
+    font-size:1.4rem; color:rgba(200,146,10,0.55);
+    font-weight:400; letter-spacing:0;
+  }
+  .strength-grade {
+    text-align:center; font-family:'Bodoni Moda',serif;
+    font-size:1rem; color:rgba(255,255,255,0.85);
+    margin-bottom:0.95rem;
+  }
+  .strength-grade strong { color:var(--gold); font-weight:900; }
+  .strength-bar-wrap {
+    background:rgba(255,255,255,0.06); border-radius:6px;
+    height:9px; overflow:hidden; margin-bottom:0.55rem;
+  }
+  .strength-bar-fill {
+    height:100%; background:linear-gradient(90deg,#C8920A,#E5A912);
+    border-radius:6px; transition:width 0.6s ease;
+  }
+  .strength-bar-label {
+    text-align:center; font-family:'DM Mono',monospace;
+    font-size:0.66rem; letter-spacing:1.5px; text-transform:uppercase;
+    color:rgba(255,255,255,0.55); margin-bottom:1rem;
+  }
+  .strength-bullets {
+    display:flex; flex-direction:column; gap:0.4rem;
+    border-top:1px solid rgba(255,255,255,0.07); padding-top:0.95rem;
+  }
+  .strength-bullet {
+    display:flex; align-items:center; gap:0.55rem;
+    font-size:0.85rem; color:rgba(255,255,255,0.78);
+  }
+  .strength-bullet.ok::before { content:'\2713'; color:#4ADE80;
+    font-weight:700; flex-shrink:0; width:0.95rem; text-align:center; }
+  .strength-bullet.bad::before { content:'\2717'; color:#F87171;
+    font-weight:700; flex-shrink:0; width:0.95rem; text-align:center; }
+  .strength-bullet.bad { color:rgba(255,255,255,0.55); }
+
+  /* Pre-paywall conversion hook */
+  .cta-score-hook {
+    background:linear-gradient(135deg, rgba(200,146,10,0.14), rgba(200,146,10,0.05));
+    border:1px solid rgba(200,146,10,0.35);
+    border-radius:10px; padding:0.85rem 1.1rem;
+    color:var(--navy); font-size:0.92rem; line-height:1.45;
+    margin-bottom:1.1rem; text-align:center;
+  }
+  .cta-score-hook strong {
+    font-family:'DM Mono',monospace; color:#92670A; font-weight:600;
+    letter-spacing:0.5px;
+  }
 
   /* Tax impact mini-table on result page */
   .tax-impact { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; margin-bottom:1.5rem; }
@@ -424,6 +509,17 @@
       <div class="hero-sub2">Fight Your El Paso CAD Tax Bill.</div>
       <p class="hero-sub">Enter your address. We analyze 238,000 El Paso properties and show you exactly how much you're being overcharged.</p>
 
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">85%</span>
+          <span class="hero-stat-text">increase in El Paso home values since 2020</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">74%</span>
+          <span class="hero-stat-text">of homeowners have never protested &mdash; most don't know how</span>
+        </div>
+      </div>
+
       <div class="search-row-hero">
         <input type="text" id="address-input" placeholder="YOUR PROPERTY ADDRESS" />
         <input type="text" id="zip-input" placeholder="ZIP — OPTIONAL" />
@@ -480,6 +576,7 @@
       <div class="row-diy">Guess at your value</div><div class="row-vc">Median-based legal standard</div>
       <div class="row-diy">No equal &amp; uniform analysis</div><div class="row-vc">EPCAD's own data vs. them</div>
       <div class="row-diy">Hope for the best</div><div class="row-vc gt">3-minute ARB hearing script</div>
+      <div class="row-diy">No protest strength score (Chuco &#10007; &middot; O'Connor &#10007;)</div><div class="row-vc gt">Protest Strength Score 1&ndash;10 &#10003;</div>
     </div>
     <p class="disclaimer-note">Results vary based on your property and neighborhood data available in EPCAD public records.</p>
   </section>
@@ -624,6 +721,17 @@
       </div>
     </div>
 
+    <div class="strength-panel" id="strength-panel" style="display:none;">
+      <div class="strength-hdr">Protest Strength</div>
+      <div class="strength-num"><span id="r-score-num">—</span><small> / 10</small></div>
+      <div class="strength-grade">Grade: <strong id="r-score-grade">—</strong></div>
+      <div class="strength-bar-wrap">
+        <div class="strength-bar-fill" id="r-score-bar" style="width:0%;"></div>
+      </div>
+      <div class="strength-bar-label" id="r-score-label">—</div>
+      <div class="strength-bullets" id="r-score-bullets"></div>
+    </div>
+
     <div class="tax-impact" id="tax-impact">
       <div class="tax-impact-hdr">Tax Bill Impact</div>
       <div class="tax-impact-row">
@@ -684,6 +792,10 @@
 
     <div class="cta-block">
       <div class="cta-top">Your complete protest packet is ready.</div>
+      <div class="cta-score-hook" id="cta-score-hook" style="display:none;">
+        Your protest strength is <strong id="cta-score-text">—</strong>.
+        See the full evidence packet.
+      </div>
       <div class="cta-headline">Get the full 7-page ARB packet<br>and fight your tax bill today.</div>
       <div class="cta-sub">Comp grids &middot; Adjustments &middot; Cover letter &middot; ARB hearing script &middot; Statutory citations</div>
 
@@ -891,6 +1003,34 @@
       pctEl.textContent = Math.round(r.pct_over) + '% overassessed';
     } else {
       pctEl.textContent = '';
+    }
+
+    // --- Protest Strength Score panel ---
+    var scorePanel = document.getElementById('strength-panel');
+    var ctaHook = document.getElementById('cta-score-hook');
+    if (d.score && typeof d.score.score === 'number') {
+      var sc = d.score;
+      document.getElementById('r-score-num').textContent = sc.score.toFixed(1);
+      document.getElementById('r-score-grade').textContent = sc.grade;
+      document.getElementById('r-score-bar').style.width =
+        (Math.max(0, Math.min(100, sc.score * 10))) + '%';
+      document.getElementById('r-score-label').textContent = sc.label;
+      var bulletsEl = document.getElementById('r-score-bullets');
+      bulletsEl.innerHTML = '';
+      (sc.bullets || []).forEach(function(b) {
+        var div = document.createElement('div');
+        div.className = 'strength-bullet ' + (b.positive ? 'ok' : 'bad');
+        div.textContent = b.label;
+        bulletsEl.appendChild(div);
+      });
+      scorePanel.style.display = 'block';
+
+      document.getElementById('cta-score-text').textContent =
+        sc.score.toFixed(1) + '/10 — Grade ' + sc.grade;
+      ctaHook.style.display = 'block';
+    } else {
+      scorePanel.style.display = 'none';
+      ctaHook.style.display = 'none';
     }
 
     // --- Tax Bill Impact table ---

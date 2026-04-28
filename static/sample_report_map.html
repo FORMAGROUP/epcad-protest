@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_dbaf9e6038568d8a973dc504cbc1dc26 {
+                    position: relative;
+                    width: 680.0px;
+                    height: 500.0px;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_dbaf9e6038568d8a973dc504cbc1dc26" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_dbaf9e6038568d8a973dc504cbc1dc26 = L.map(
+                "map_dbaf9e6038568d8a973dc504cbc1dc26",
+                {
+                    center: [31.852603325536784, -106.52736232146741],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 15,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_ce92e5017aab0313ec07da27d768f384 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_ce92e5017aab0313ec07da27d768f384.addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var marker_6271f5dd9c05786a0fb9400248c6fb89 = L.marker(
+                [31.852603325536784, -106.52736232146741],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_239f9e9196e04c9b354b2e33f8606925 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_5ca27642badff204004ae78f8dcdfd2e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c22d3bc660a8b78976749157103ce510 = $(`<div id="html_c22d3bc660a8b78976749157103ce510" style="width: 100.0%; height: 100.0%;">SUBJECT: 6093 PINO REAL DR</div>`)[0];
+                popup_5ca27642badff204004ae78f8dcdfd2e.setContent(html_c22d3bc660a8b78976749157103ce510);
+            
+        
+
+        marker_6271f5dd9c05786a0fb9400248c6fb89.bindPopup(popup_5ca27642badff204004ae78f8dcdfd2e)
+        ;
+
+        
+    
+    
+            marker_6271f5dd9c05786a0fb9400248c6fb89.bindTooltip(
+                `<div>
+                     SUBJECT
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_6271f5dd9c05786a0fb9400248c6fb89.setIcon(icon_239f9e9196e04c9b354b2e33f8606925);
+            
+    
+            var circle_afa13494ef960dc8ef9ebc283c6b5b30 = L.circle(
+                [31.852603325536784, -106.52736232146741],
+                {"bubblingMouseEvents": true, "color": "#C8920A", "dashArray": "5,5", "dashOffset": null, "fill": false, "fillColor": "#C8920A", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 804.672, "stroke": true, "weight": 1.5}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            circle_afa13494ef960dc8ef9ebc283c6b5b30.bindTooltip(
+                `<div>
+                     0.5 mile radius
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_5e43c42d978a66f542df31b2a873652e = L.circle(
+                [31.852603325536784, -106.52736232146741],
+                {"bubblingMouseEvents": true, "color": "#666666", "dashArray": "8,4", "dashOffset": null, "fill": false, "fillColor": "#666666", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 1609.344, "stroke": true, "weight": 1}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            circle_5e43c42d978a66f542df31b2a873652e.bindTooltip(
+                `<div>
+                     1.0 mile radius
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_39e48e78ca69764472e7526b949cd287 = L.marker(
+                [31.85307570507438, -106.52791141955966],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_f8a64ae137679578f74573c1c437cada = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_d7878311d2888d415b92881841e26f54 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_49dedb3905f01124a9ef6be27eb81fe6 = $(`<div id="html_49dedb3905f01124a9ef6be27eb81fe6" style="width: 100.0%; height: 100.0%;">Tier 1: 6320 CAMINO ALEGRE DR (0.05 mi)</div>`)[0];
+                popup_d7878311d2888d415b92881841e26f54.setContent(html_49dedb3905f01124a9ef6be27eb81fe6);
+            
+        
+
+        marker_39e48e78ca69764472e7526b949cd287.bindPopup(popup_d7878311d2888d415b92881841e26f54)
+        ;
+
+        
+    
+    
+            marker_39e48e78ca69764472e7526b949cd287.bindTooltip(
+                `<div>
+                     6320 CAMINO ALEGRE DR — 0.05 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_39e48e78ca69764472e7526b949cd287.setIcon(icon_f8a64ae137679578f74573c1c437cada);
+            
+    
+            var marker_46ea01ba77b0e7a16c9bfeee1f84e7bd = L.marker(
+                [31.85360661824456, -106.52490402676933],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_0b3de34368d2cea07279ebd368e5b46e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e013071bc6aa0e3d2891f3b41d18484e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_723baf03ec1f7715307d8d45c6d9a0b8 = $(`<div id="html_723baf03ec1f7715307d8d45c6d9a0b8" style="width: 100.0%; height: 100.0%;">Tier 1: 6008 CAMINO ALEGRE DR (0.16 mi)</div>`)[0];
+                popup_e013071bc6aa0e3d2891f3b41d18484e.setContent(html_723baf03ec1f7715307d8d45c6d9a0b8);
+            
+        
+
+        marker_46ea01ba77b0e7a16c9bfeee1f84e7bd.bindPopup(popup_e013071bc6aa0e3d2891f3b41d18484e)
+        ;
+
+        
+    
+    
+            marker_46ea01ba77b0e7a16c9bfeee1f84e7bd.bindTooltip(
+                `<div>
+                     6008 CAMINO ALEGRE DR — 0.16 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_46ea01ba77b0e7a16c9bfeee1f84e7bd.setIcon(icon_0b3de34368d2cea07279ebd368e5b46e);
+            
+    
+            var marker_14d9dcdfbc4d28cfdf64b7e0743b991a = L.marker(
+                [31.856146092476763, -106.53184552776305],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_0c67f3a055faa75c3f2aa287b3bd5c17 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_926d587aa90bdc197b9cace6775e4033 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_44cad9bf60c0f42d47dce1c2dfa6d1a7 = $(`<div id="html_44cad9bf60c0f42d47dce1c2dfa6d1a7" style="width: 100.0%; height: 100.0%;">Tier 1: 6321 VIA AVENTURA DR (0.36 mi)</div>`)[0];
+                popup_926d587aa90bdc197b9cace6775e4033.setContent(html_44cad9bf60c0f42d47dce1c2dfa6d1a7);
+            
+        
+
+        marker_14d9dcdfbc4d28cfdf64b7e0743b991a.bindPopup(popup_926d587aa90bdc197b9cace6775e4033)
+        ;
+
+        
+    
+    
+            marker_14d9dcdfbc4d28cfdf64b7e0743b991a.bindTooltip(
+                `<div>
+                     6321 VIA AVENTURA DR — 0.36 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_14d9dcdfbc4d28cfdf64b7e0743b991a.setIcon(icon_0c67f3a055faa75c3f2aa287b3bd5c17);
+            
+    
+            var marker_24c024ab2d2c88c67f1a5cee00db9749 = L.marker(
+                [31.849952891499655, -106.53273024229718],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_1858628b6c5aa6893bc4b55d6fa2fc58 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e885606e92417be550ec6bb0fd1e3b95 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_83d52c487c3db70490ed9836613789ab = $(`<div id="html_83d52c487c3db70490ed9836613789ab" style="width: 100.0%; height: 100.0%;">Tier 1: 605 CRESTA ALTA DR (0.36 mi)</div>`)[0];
+                popup_e885606e92417be550ec6bb0fd1e3b95.setContent(html_83d52c487c3db70490ed9836613789ab);
+            
+        
+
+        marker_24c024ab2d2c88c67f1a5cee00db9749.bindPopup(popup_e885606e92417be550ec6bb0fd1e3b95)
+        ;
+
+        
+    
+    
+            marker_24c024ab2d2c88c67f1a5cee00db9749.bindTooltip(
+                `<div>
+                     605 CRESTA ALTA DR — 0.36 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_24c024ab2d2c88c67f1a5cee00db9749.setIcon(icon_1858628b6c5aa6893bc4b55d6fa2fc58);
+            
+    
+            var marker_d474024c84807a6ccf9088351da2bae5 = L.marker(
+                [31.85091382343966, -106.5217671555283],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_df1d2a91483ef503931af9b3701c17d3 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8c7da00fbb3a828d548df48f7dc27024 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1879bf7ff5b2842cd3377826de4f6311 = $(`<div id="html_1879bf7ff5b2842cd3377826de4f6311" style="width: 100.0%; height: 100.0%;">Tier 1: 1089 LOS JARDINES CIR (0.35 mi)</div>`)[0];
+                popup_8c7da00fbb3a828d548df48f7dc27024.setContent(html_1879bf7ff5b2842cd3377826de4f6311);
+            
+        
+
+        marker_d474024c84807a6ccf9088351da2bae5.bindPopup(popup_8c7da00fbb3a828d548df48f7dc27024)
+        ;
+
+        
+    
+    
+            marker_d474024c84807a6ccf9088351da2bae5.bindTooltip(
+                `<div>
+                     1089 LOS JARDINES CIR — 0.35 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d474024c84807a6ccf9088351da2bae5.setIcon(icon_df1d2a91483ef503931af9b3701c17d3);
+            
+    
+            var marker_9b8a110edebd8bdc1d6eda5866317e05 = L.marker(
+                [31.853431357807366, -106.52645420170572],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_6d10aca0d549c90e1455fd65c9e3c4c5 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7779b0f29fa9d79dec51db20ed0585e7 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_03a2a33dafff0712b6325847c0447d1e = $(`<div id="html_03a2a33dafff0712b6325847c0447d1e" style="width: 100.0%; height: 100.0%;">Tier 1: 745 DULCE TIERRA DR (0.08 mi)</div>`)[0];
+                popup_7779b0f29fa9d79dec51db20ed0585e7.setContent(html_03a2a33dafff0712b6325847c0447d1e);
+            
+        
+
+        marker_9b8a110edebd8bdc1d6eda5866317e05.bindPopup(popup_7779b0f29fa9d79dec51db20ed0585e7)
+        ;
+
+        
+    
+    
+            marker_9b8a110edebd8bdc1d6eda5866317e05.bindTooltip(
+                `<div>
+                     745 DULCE TIERRA DR — 0.08 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_9b8a110edebd8bdc1d6eda5866317e05.setIcon(icon_6d10aca0d549c90e1455fd65c9e3c4c5);
+            
+    
+            var marker_bf6a7b407e39e42482f49f84dc57182c = L.marker(
+                [31.852677729750802, -106.52680956593176],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_b63cf16e631ee592da67ab62c453ad37 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_81483a57d2026c151ef303b2f97f476a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_279225aa98e042d8ff19b0612a84bb0d = $(`<div id="html_279225aa98e042d8ff19b0612a84bb0d" style="width: 100.0%; height: 100.0%;">Tier 3: 6092 PINO REAL DR (0.03 mi)</div>`)[0];
+                popup_81483a57d2026c151ef303b2f97f476a.setContent(html_279225aa98e042d8ff19b0612a84bb0d);
+            
+        
+
+        marker_bf6a7b407e39e42482f49f84dc57182c.bindPopup(popup_81483a57d2026c151ef303b2f97f476a)
+        ;
+
+        
+    
+    
+            marker_bf6a7b407e39e42482f49f84dc57182c.bindTooltip(
+                `<div>
+                     6092 PINO REAL DR — 0.03 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_bf6a7b407e39e42482f49f84dc57182c.setIcon(icon_b63cf16e631ee592da67ab62c453ad37);
+            
+    
+            var marker_8c24d91008cc6616825e2cb4ba96eb41 = L.marker(
+                [31.851723909109804, -106.52770000440074],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_b154e8367e46cd6ceb1f8211b1902e7a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_b56d5863409c19df2c2acfd694434b2a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c4bc3d79656c46d33f04aa888d6fac5d = $(`<div id="html_c4bc3d79656c46d33f04aa888d6fac5d" style="width: 100.0%; height: 100.0%;">Tier 3: 6109 PINO REAL DR (0.06 mi)</div>`)[0];
+                popup_b56d5863409c19df2c2acfd694434b2a.setContent(html_c4bc3d79656c46d33f04aa888d6fac5d);
+            
+        
+
+        marker_8c24d91008cc6616825e2cb4ba96eb41.bindPopup(popup_b56d5863409c19df2c2acfd694434b2a)
+        ;
+
+        
+    
+    
+            marker_8c24d91008cc6616825e2cb4ba96eb41.bindTooltip(
+                `<div>
+                     6109 PINO REAL DR — 0.06 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8c24d91008cc6616825e2cb4ba96eb41.setIcon(icon_b154e8367e46cd6ceb1f8211b1902e7a);
+            
+    
+            var marker_697dc96cee5a5906f6a426831deeecfe = L.marker(
+                [31.853223082781035, -106.52645296684783],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_b621b0f8da2d2fa7181bc74d41d39134 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_968d2e8807c70551af585d20c4537ac2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_790f130054c15f777f862dd108c80e17 = $(`<div id="html_790f130054c15f777f862dd108c80e17" style="width: 100.0%; height: 100.0%;">Tier 3: 741 DULCE TIERRA DR (0.07 mi)</div>`)[0];
+                popup_968d2e8807c70551af585d20c4537ac2.setContent(html_790f130054c15f777f862dd108c80e17);
+            
+        
+
+        marker_697dc96cee5a5906f6a426831deeecfe.bindPopup(popup_968d2e8807c70551af585d20c4537ac2)
+        ;
+
+        
+    
+    
+            marker_697dc96cee5a5906f6a426831deeecfe.bindTooltip(
+                `<div>
+                     741 DULCE TIERRA DR — 0.07 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_697dc96cee5a5906f6a426831deeecfe.setIcon(icon_b621b0f8da2d2fa7181bc74d41d39134);
+            
+    
+            var marker_2655d4c255e70b0ac61b655c3c79a944 = L.marker(
+                [31.85146546316701, -106.52719304367102],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_087c7f862e76b02eedaa813c8b86d97d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a387cce0dd093fa559f870db01fccbca = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a95262dee4151fab2645fc3074d2d47d = $(`<div id="html_a95262dee4151fab2645fc3074d2d47d" style="width: 100.0%; height: 100.0%;">Tier 3: 6108 PINO REAL DR (0.08 mi)</div>`)[0];
+                popup_a387cce0dd093fa559f870db01fccbca.setContent(html_a95262dee4151fab2645fc3074d2d47d);
+            
+        
+
+        marker_2655d4c255e70b0ac61b655c3c79a944.bindPopup(popup_a387cce0dd093fa559f870db01fccbca)
+        ;
+
+        
+    
+    
+            marker_2655d4c255e70b0ac61b655c3c79a944.bindTooltip(
+                `<div>
+                     6108 PINO REAL DR — 0.08 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_2655d4c255e70b0ac61b655c3c79a944.setIcon(icon_087c7f862e76b02eedaa813c8b86d97d);
+            
+    
+            var marker_d3af306ce105e02bc8f96d4577b5029f = L.marker(
+                [31.85148741838469, -106.52680119087803],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_23d27cd7e40f7cfeac30c1590690a89c = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9144f1c78ce1a838576c4c7a5324b68c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8c2b45802a9e493a4c4dc09b711007cc = $(`<div id="html_8c2b45802a9e493a4c4dc09b711007cc" style="width: 100.0%; height: 100.0%;">Tier 3: 705 DULCE TIERRA DR (0.08 mi)</div>`)[0];
+                popup_9144f1c78ce1a838576c4c7a5324b68c.setContent(html_8c2b45802a9e493a4c4dc09b711007cc);
+            
+        
+
+        marker_d3af306ce105e02bc8f96d4577b5029f.bindPopup(popup_9144f1c78ce1a838576c4c7a5324b68c)
+        ;
+
+        
+    
+    
+            marker_d3af306ce105e02bc8f96d4577b5029f.bindTooltip(
+                `<div>
+                     705 DULCE TIERRA DR — 0.08 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d3af306ce105e02bc8f96d4577b5029f.setIcon(icon_23d27cd7e40f7cfeac30c1590690a89c);
+            
+    
+            var marker_c91eefb033751a36fb87e0b5df1ffd84 = L.marker(
+                [31.8528341962134, -106.52588078821236],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_f8b7d1869b967d8d60d0a5e07f29c193 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_3cd674606fda0a7b19134af1083b6bd4 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_993f554214f5f19352f408aa247424f7 = $(`<div id="html_993f554214f5f19352f408aa247424f7" style="width: 100.0%; height: 100.0%;">Tier 3: 732 DULCE TIERRA DR (0.09 mi)</div>`)[0];
+                popup_3cd674606fda0a7b19134af1083b6bd4.setContent(html_993f554214f5f19352f408aa247424f7);
+            
+        
+
+        marker_c91eefb033751a36fb87e0b5df1ffd84.bindPopup(popup_3cd674606fda0a7b19134af1083b6bd4)
+        ;
+
+        
+    
+    
+            marker_c91eefb033751a36fb87e0b5df1ffd84.bindTooltip(
+                `<div>
+                     732 DULCE TIERRA DR — 0.09 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_c91eefb033751a36fb87e0b5df1ffd84.setIcon(icon_f8b7d1869b967d8d60d0a5e07f29c193);
+            
+    
+            var marker_76ae6b3a41bfc08fa0b5a97acfb0a28b = L.marker(
+                [31.851949230948097, -106.52601193648542],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_6fac842a214f8cf25c14f390393739ef = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_2f67071fedb58b02e7e81688d0df020c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5c09164b12c8de00abf9e37969e3280e = $(`<div id="html_5c09164b12c8de00abf9e37969e3280e" style="width: 100.0%; height: 100.0%;">Tier 3: 716 DULCE TIERRA DR (0.09 mi)</div>`)[0];
+                popup_2f67071fedb58b02e7e81688d0df020c.setContent(html_5c09164b12c8de00abf9e37969e3280e);
+            
+        
+
+        marker_76ae6b3a41bfc08fa0b5a97acfb0a28b.bindPopup(popup_2f67071fedb58b02e7e81688d0df020c)
+        ;
+
+        
+    
+    
+            marker_76ae6b3a41bfc08fa0b5a97acfb0a28b.bindTooltip(
+                `<div>
+                     716 DULCE TIERRA DR — 0.09 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_76ae6b3a41bfc08fa0b5a97acfb0a28b.setIcon(icon_6fac842a214f8cf25c14f390393739ef);
+            
+    
+            var marker_c3a9b04603454aae1d1c874a1f2c4229 = L.marker(
+                [31.85305161836926, -106.52582520286329],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_016d196b9da2ba165fb3bd8f59c2dd90 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e2e0fa31fc01eecf2f66f499913cb2b8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4a1d5b71ae51c1cc88bd0d816f6a09d6 = $(`<div id="html_4a1d5b71ae51c1cc88bd0d816f6a09d6" style="width: 100.0%; height: 100.0%;">Tier 3: 736 DULCE TIERRA DR (0.10 mi)</div>`)[0];
+                popup_e2e0fa31fc01eecf2f66f499913cb2b8.setContent(html_4a1d5b71ae51c1cc88bd0d816f6a09d6);
+            
+        
+
+        marker_c3a9b04603454aae1d1c874a1f2c4229.bindPopup(popup_e2e0fa31fc01eecf2f66f499913cb2b8)
+        ;
+
+        
+    
+    
+            marker_c3a9b04603454aae1d1c874a1f2c4229.bindTooltip(
+                `<div>
+                     736 DULCE TIERRA DR — 0.10 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_c3a9b04603454aae1d1c874a1f2c4229.setIcon(icon_016d196b9da2ba165fb3bd8f59c2dd90);
+            
+    
+            var marker_666d38d63cb25ab27d3ca6867c7c6e0e = L.marker(
+                [31.851458448693265, -106.52830070842508],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_1f265e20febf3d7a989280171d72fb4d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a72b54606aeb620ac1c14d14578697aa = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8516db8023f220053035bfb2de7ede46 = $(`<div id="html_8516db8023f220053035bfb2de7ede46" style="width: 100.0%; height: 100.0%;">Tier 3: 728 CRESTAMIRA DR (0.10 mi)</div>`)[0];
+                popup_a72b54606aeb620ac1c14d14578697aa.setContent(html_8516db8023f220053035bfb2de7ede46);
+            
+        
+
+        marker_666d38d63cb25ab27d3ca6867c7c6e0e.bindPopup(popup_a72b54606aeb620ac1c14d14578697aa)
+        ;
+
+        
+    
+    
+            marker_666d38d63cb25ab27d3ca6867c7c6e0e.bindTooltip(
+                `<div>
+                     728 CRESTAMIRA DR — 0.10 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_666d38d63cb25ab27d3ca6867c7c6e0e.setIcon(icon_1f265e20febf3d7a989280171d72fb4d);
+            
+    
+            var marker_44c483d3c16a070ccb6ac42565dd043a = L.marker(
+                [31.8538647427335, -106.52837296096335],
+                {
+}
+            ).addTo(map_dbaf9e6038568d8a973dc504cbc1dc26);
+        
+    
+            var icon_a87bb2b9a7213d0569df5232d8fa0fc4 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_27d106a29f18db7ea446e11adfb9323b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d6df054bd8c752908c1c83793948be29 = $(`<div id="html_d6df054bd8c752908c1c83793948be29" style="width: 100.0%; height: 100.0%;">Tier 3: 6201 CAMINO ALEGRE DR (0.11 mi)</div>`)[0];
+                popup_27d106a29f18db7ea446e11adfb9323b.setContent(html_d6df054bd8c752908c1c83793948be29);
+            
+        
+
+        marker_44c483d3c16a070ccb6ac42565dd043a.bindPopup(popup_27d106a29f18db7ea446e11adfb9323b)
+        ;
+
+        
+    
+    
+            marker_44c483d3c16a070ccb6ac42565dd043a.bindTooltip(
+                `<div>
+                     6201 CAMINO ALEGRE DR — 0.11 mi
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_44c483d3c16a070ccb6ac42565dd043a.setIcon(icon_a87bb2b9a7213d0569df5232d8fa0fc4);
+            
+</script>
+</html>

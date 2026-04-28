@@ -863,7 +863,7 @@ def _page4_tier3(subject, comps, recommendation, ss):
     return elements
 
 
-def _page5_cover_letter(subject, recommendation, ss, protest_year):
+def _page5_cover_letter(subject, recommendation, ss, protest_year, score=None):
     """Page 5: Cover letter for ARB."""
     elements = []
     elements.append(_tier_banner("PROTEST COVER LETTER"))
@@ -881,7 +881,29 @@ def _page5_cover_letter(subject, recommendation, ss, protest_year):
 
     today = date.today().strftime("%B %d, %Y")
 
-    elements.append(Paragraph(today, ss["CoverBody"]))
+    # Date on the left, Protest Strength score on the right
+    if score and score.get("score") is not None:
+        score_str = (f"<b>Protest Strength: {score['score']:.1f}/10 "
+                     f"({score['grade']})</b> &mdash; {score['label']}")
+        date_score_row = [[
+            Paragraph(today, ss["CoverBody"]),
+            Paragraph(
+                f"<font color='#0B1F3A'>{score_str}</font>",
+                ParagraphStyle("_scoreR", parent=ss["CoverBody"],
+                               alignment=TA_RIGHT, fontSize=9.5,
+                               textColor=NAVY)),
+        ]]
+        dt = Table(date_score_row, colWidths=[3.2 * inch, 4.0 * inch])
+        dt.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        elements.append(dt)
+    else:
+        elements.append(Paragraph(today, ss["CoverBody"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph(
         "El Paso Central Appraisal District<br/>"
@@ -1451,7 +1473,7 @@ def _page_hearing_script(subject, recommendation, tier1_comps, tier3_comps,
 # ---------------------------------------------------------------------------
 
 def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
-                 output_path=None, tier2_comps=None):
+                 output_path=None, tier2_comps=None, score=None):
     """Build the protest PDF packet."""
     protest_year = config.get("protest_year", 2026)
     acct = subject["account_number"]
@@ -1492,7 +1514,8 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     elements.append(PageBreak())
 
     # Page 5 — Cover letter
-    elements += _page5_cover_letter(subject, recommendation, ss, protest_year)
+    elements += _page5_cover_letter(subject, recommendation, ss, protest_year,
+                                    score=score)
     elements.append(PageBreak())
 
     # Page 6 — Value History (from API roll data)
