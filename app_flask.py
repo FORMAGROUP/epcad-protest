@@ -1,11 +1,13 @@
 """ValuCheck Flask app — landing page + API for three-tier analysis."""
 
+import json
 import os
 import sys
 import sqlite3
 import tempfile
 import threading
 import uuid
+from datetime import datetime, timezone
 
 import stripe
 from flask import Flask, request, jsonify, send_file, render_template
@@ -26,6 +28,59 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 # Store generated PDFs in /tmp keyed by a random ID
 PDF_DIR = os.path.join(tempfile.gettempdir(), "valucheck_pdfs")
 os.makedirs(PDF_DIR, exist_ok=True)
+
+
+def _init_beta_downloads_table():
+    """Create the beta_downloads table in epcad.db if it doesn't exist."""
+    try:
+        conn = get_db()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS beta_downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pdf_id TEXT NOT NULL,
+                account_number TEXT,
+                address TEXT,
+                city TEXT,
+                zip TEXT,
+                ip TEXT,
+                user_agent TEXT,
+                ts TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception as exc:
+        # Don't crash app boot if DB isn't reachable yet.
+        print(f"[beta] Could not init beta_downloads table: {exc}",
+              file=sys.stderr)
+
+
+_init_beta_downloads_table()
+
+
+def _log_beta_download(pdf_id, meta, ip, user_agent):
+    """Insert a row into beta_downloads. Best-effort — never raises."""
+    try:
+        conn = get_db()
+        conn.execute(
+            "INSERT INTO beta_downloads "
+            "(pdf_id, account_number, address, city, zip, ip, user_agent) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                pdf_id,
+                (meta or {}).get("account"),
+                (meta or {}).get("address"),
+                (meta or {}).get("city"),
+                (meta or {}).get("zip"),
+                ip,
+                user_agent,
+            ),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as exc:
+        print(f"[beta] Could not log beta download {pdf_id}: {exc}",
+              file=sys.stderr)
 
 
 def _fd(v):
@@ -88,6 +143,32 @@ def _run_analysis(address, zipcode, result_holder):
         pdf_path = os.path.join(PDF_DIR, f"{pdf_id}.pdf")
         generate_pdf(subject, t1, t3, rec, config, pdf_path,
                      tier2_comps=t2, score=score)
+
+        # Eagerly generate the beta variant so the "Get Free Beta Report"
+        # button is instant. Adds a watermark line at the top of every page.
+        beta_pdf_path = os.path.join(PDF_DIR, f"{pdf_id}_beta.pdf")
+        try:
+            generate_pdf(subject, t1, t3, rec, config, beta_pdf_path,
+                         tier2_comps=t2, score=score, beta_mode=True)
+        except Exception as exc:
+            print(f"[beta] Could not generate beta PDF {pdf_id}: {exc}",
+                  file=sys.stderr)
+
+        # Sidecar meta so /report?beta=true can log address/account without
+        # re-running the analysis.
+        meta_path = os.path.join(PDF_DIR, f"{pdf_id}.meta.json")
+        try:
+            with open(meta_path, "w") as f:
+                json.dump({
+                    "account": subject["account_number"],
+                    "address": subject["situs_address"] or "",
+                    "city": subject["situs_city"] or "",
+                    "zip": subject["situs_zip"] or "",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }, f)
+        except Exception as exc:
+            print(f"[beta] Could not write meta for {pdf_id}: {exc}",
+                  file=sys.stderr)
 
         # Build tier 1 comp list for preview
         t1_comps = []
@@ -293,10 +374,47 @@ def checkout():
 
 @app.route("/report/<pdf_id>")
 def serve_report(pdf_id):
-    """Serve a generated PDF by its ID."""
+    """Serve a generated PDF by its ID.
+
+    ?beta=true returns the watermarked beta variant and logs the download
+    to beta_downloads. Otherwise the regular paid PDF is served.
+    """
     # Sanitize: only allow hex chars
     if not all(c in "0123456789abcdef" for c in pdf_id):
         return "Invalid report ID.", 400
+
+    is_beta = (request.args.get("beta", "").lower() == "true")
+
+    if is_beta:
+        beta_path = os.path.join(PDF_DIR, f"{pdf_id}_beta.pdf")
+        # Fall back to lazy generation if the eager one didn't run for some
+        # reason — keeps the button working even if the analyze-time
+        # generate failed.
+        if not os.path.exists(beta_path):
+            return "Beta report not found or expired.", 404
+
+        # Read meta sidecar (best effort)
+        meta_path = os.path.join(PDF_DIR, f"{pdf_id}.meta.json")
+        meta = None
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path) as f:
+                    meta = json.load(f)
+            except Exception:
+                meta = None
+
+        _log_beta_download(
+            pdf_id=pdf_id,
+            meta=meta,
+            ip=(request.headers.get("X-Forwarded-For", request.remote_addr or "") or "").split(",")[0].strip(),
+            user_agent=request.headers.get("User-Agent", "")[:500],
+        )
+        return send_file(
+            beta_path, mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"valucheck_beta_{pdf_id}.pdf",
+        )
+
     pdf_path = os.path.join(PDF_DIR, f"{pdf_id}.pdf")
     if not os.path.exists(pdf_path):
         return "Report not found or expired.", 404

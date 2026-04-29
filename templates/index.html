@@ -1486,7 +1486,7 @@
     </div>
 
     <div style="text-align:center;">
-      <a href="/sample" class="beta-btn">Try a Free Beta Report &rarr;</a>
+      <a href="#" id="beta-btn" class="beta-btn" onclick="return betaDownload(event)">Get Free Beta Report &rarr;</a>
     </div>
   </div>
 </div>
@@ -1777,6 +1777,13 @@
   function closeModal() {
     document.getElementById('modal-overlay').classList.remove('visible');
     document.body.style.overflow = '';
+  }
+
+  function betaDownload(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!currentResult || !currentResult.pdf_id) return false;
+    window.location.href = '/report/' + currentResult.pdf_id + '?beta=true';
+    return false;
   }
 
   async function processPayment() {

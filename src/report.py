@@ -133,7 +133,7 @@ def _alt_row_shading(style_cmds, num_data_rows, start_row=1):
             style_cmds.append(("BACKGROUND", (0, i), (-1, i), LIGHT_GRAY))
 
 
-def _footer(canvas, doc, account_number, protest_year):
+def _footer(canvas, doc, account_number, protest_year, beta_mode=False):
     width, height = letter
     canvas.saveState()
 
@@ -141,6 +141,13 @@ def _footer(canvas, doc, account_number, protest_year):
     canvas.setStrokeColor(colors.HexColor("#C8920A"))
     canvas.setLineWidth(3)
     canvas.line(0, height - 3, width, height - 3)
+
+    # --- Beta watermark band (if applicable) ---
+    if beta_mode:
+        canvas.setFont("Helvetica-Bold", 8)
+        canvas.setFillColor(colors.HexColor("#B91C1C"))
+        canvas.drawCentredString(width / 2.0, height - 16,
+                                 "BETA REPORT — getvalucheck.com")
 
     # --- Footer separator line ---
     canvas.setStrokeColor(colors.HexColor("#e0e0e0"))
@@ -1473,8 +1480,13 @@ def _page_hearing_script(subject, recommendation, tier1_comps, tier3_comps,
 # ---------------------------------------------------------------------------
 
 def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
-                 output_path=None, tier2_comps=None, score=None):
-    """Build the protest PDF packet."""
+                 output_path=None, tier2_comps=None, score=None,
+                 beta_mode=False):
+    """Build the protest PDF packet.
+
+    beta_mode: when True, stamps a "BETA REPORT — getvalucheck.com"
+    line at the top of every page so beta downloads are identifiable.
+    """
     protest_year = config.get("protest_year", 2026)
     acct = subject["account_number"]
 
@@ -1538,7 +1550,7 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     elements += _page7_proximity(subject, tier1_comps, tier3_comps, ss)
 
     def _on_page(canvas, doc_obj):
-        _footer(canvas, doc_obj, acct, protest_year)
+        _footer(canvas, doc_obj, acct, protest_year, beta_mode=beta_mode)
 
     doc.build(elements, onFirstPage=_on_page, onLaterPages=_on_page)
     return output_path
