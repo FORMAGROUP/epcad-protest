@@ -19,6 +19,15 @@
     font-style: normal !important;
   }
 
+  .epcad-value, .protest-value, .savings-amount, .score-number,
+  .value-number, .stat-number, .kpi-number,
+  [class*="value"], [class*="savings"], [class*="score"] {
+    font-family: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" !important;
+    font-style: normal !important;
+  }
+
   :root {
     --navy: #0B1F3A;
     --navy-mid: #142847;
@@ -1339,12 +1348,12 @@
 
     <div class="value-compare">
       <div class="val-box">
-        <div class="val-num" id="r-epcad-val"></div>
+        <div class="val-num" id="r-epcad-val" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
         <div class="val-label">EPCAD Value</div>
       </div>
       <div class="val-arrow">&rarr;</div>
       <div class="val-box protest">
-        <div class="val-num" id="r-protest-val"></div>
+        <div class="val-num" id="r-protest-val" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
         <div class="val-label">Protest To</div>
       </div>
     </div>
@@ -1352,7 +1361,7 @@
     <div class="savings-block">
       <div>
         <div class="savings-label">Potential Savings Found</div>
-        <div class="savings-amount" id="r-savings"></div>
+        <div class="savings-amount" id="r-savings" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
         <div class="savings-sub">Based on 3-tier evidence &middot; Results may vary</div>
       </div>
       <div class="savings-right">
@@ -1364,7 +1373,7 @@
 
     <div class="strength-panel" id="strength-panel" style="display:none;">
       <div class="strength-hdr">Protest Strength</div>
-      <div class="strength-num"><span id="r-score-num">&mdash;</span><small> / 10</small></div>
+      <div class="strength-num" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"><span id="r-score-num" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;">&mdash;</span><small> / 10</small></div>
       <div class="strength-grade">Grade: <strong id="r-score-grade">&mdash;</strong></div>
       <div class="strength-plain" id="r-score-plain"></div>
       <div class="strength-bar-wrap">
