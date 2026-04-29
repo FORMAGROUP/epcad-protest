@@ -144,18 +144,8 @@ def _run_analysis(address, zipcode, result_holder):
         generate_pdf(subject, t1, t3, rec, config, pdf_path,
                      tier2_comps=t2, score=score)
 
-        # Eagerly generate the beta variant so the "Get Free Beta Report"
-        # button is instant. Adds a watermark line at the top of every page.
-        beta_pdf_path = os.path.join(PDF_DIR, f"{pdf_id}_beta.pdf")
-        try:
-            generate_pdf(subject, t1, t3, rec, config, beta_pdf_path,
-                         tier2_comps=t2, score=score, beta_mode=True)
-        except Exception as exc:
-            print(f"[beta] Could not generate beta PDF {pdf_id}: {exc}",
-                  file=sys.stderr)
-
-        # Sidecar meta so /report?beta=true can log address/account without
-        # re-running the analysis.
+        # Sidecar meta so the free-download route can log address/account
+        # without re-running the analysis.
         meta_path = os.path.join(PDF_DIR, f"{pdf_id}.meta.json")
         try:
             with open(meta_path, "w") as f:
@@ -376,24 +366,19 @@ def checkout():
 def serve_report(pdf_id):
     """Serve a generated PDF by its ID.
 
-    ?beta=true returns the watermarked beta variant and logs the download
-    to beta_downloads. Otherwise the regular paid PDF is served.
+    ?beta=true bypasses the Stripe paywall and logs the download for
+    analytics, but the PDF itself is identical to the paid version.
     """
     # Sanitize: only allow hex chars
     if not all(c in "0123456789abcdef" for c in pdf_id):
         return "Invalid report ID.", 400
 
-    is_beta = (request.args.get("beta", "").lower() == "true")
+    pdf_path = os.path.join(PDF_DIR, f"{pdf_id}.pdf")
+    if not os.path.exists(pdf_path):
+        return "Report not found or expired.", 404
 
-    if is_beta:
-        beta_path = os.path.join(PDF_DIR, f"{pdf_id}_beta.pdf")
-        # Fall back to lazy generation if the eager one didn't run for some
-        # reason — keeps the button working even if the analyze-time
-        # generate failed.
-        if not os.path.exists(beta_path):
-            return "Beta report not found or expired.", 404
-
-        # Read meta sidecar (best effort)
+    if request.args.get("beta", "").lower() == "true":
+        # Free-download flow: log access, serve the standard PDF.
         meta_path = os.path.join(PDF_DIR, f"{pdf_id}.meta.json")
         meta = None
         if os.path.exists(meta_path):
@@ -402,24 +387,16 @@ def serve_report(pdf_id):
                     meta = json.load(f)
             except Exception:
                 meta = None
-
         _log_beta_download(
             pdf_id=pdf_id,
             meta=meta,
             ip=(request.headers.get("X-Forwarded-For", request.remote_addr or "") or "").split(",")[0].strip(),
             user_agent=request.headers.get("User-Agent", "")[:500],
         )
-        return send_file(
-            beta_path, mimetype="application/pdf",
-            as_attachment=True,
-            download_name=f"valucheck_beta_{pdf_id}.pdf",
-        )
 
-    pdf_path = os.path.join(PDF_DIR, f"{pdf_id}.pdf")
-    if not os.path.exists(pdf_path):
-        return "Report not found or expired.", 404
     return send_file(pdf_path, mimetype="application/pdf",
-                     as_attachment=True, download_name=f"valucheck_protest_{pdf_id}.pdf")
+                     as_attachment=True,
+                     download_name=f"valucheck_protest_{pdf_id}.pdf")
 
 
 if __name__ == "__main__":
