@@ -4,140 +4,130 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ValuCheck — Fight Your El Paso Property Tax Bill</title>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bodoni+Moda:wght@400;700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --navy: #0B1F3A;
     --navy-mid: #142847;
     --gold: #C8920A;
     --gold-light: #E5A912;
-    --cream: #F9F6F0;
+    --gold-soft: #F5D78E;
+    --bg: #F5F7FA;
+    --surface: #FFFFFF;
+    --border: #D9DEE6;
+    --border-soft: #E8ECF1;
     --red: #C0392B;
     --green: #1A7A4A;
-    --text: #1A1A2E;
-    --muted: #6B7280;
+    --green-tint: #E8F5EE;
+    --green-dot: #4ADE80;
+    --text: #14213D;
+    --muted: #5B6573;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Lato',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; font-size:17px; }
-
-  header {
-    position:fixed; top:0; left:0; right:0; z-index:100;
-    background:var(--navy); padding:0 2rem; height:60px;
-    display:flex; align-items:center; justify-content:space-between;
-    box-shadow:0 2px 20px rgba(0,0,0,0.3);
+  html { -webkit-text-size-adjust:100%; }
+  body {
+    font-family:'Lato',sans-serif;
+    background:var(--bg); color:var(--text);
+    overflow-x:hidden;
+    font-size:16px; line-height:1.6;
   }
-  .header-deadline { font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(255,255,255,0.45); }
-  .header-deadline strong { color:var(--gold); }
 
+  /* ============ TOP BANNER (red, full-width) ============ */
   .deadline-banner {
     background:var(--red); color:white; text-align:center;
-    padding:0.6rem 1rem; font-size:0.85rem; font-weight:600;
-    margin-top:60px;
+    padding:0.8rem 1rem;
+    font-size:16px; font-weight:600; line-height:1.4;
   }
-  .deadline-banner strong { font-family:'DM Mono',monospace; }
+  .deadline-banner strong { font-weight:700; }
 
-  /* === SEARCH VIEW === */
-  #search-view { display:block; }
+  /* ============ HEADER ============ */
+  header {
+    background:var(--navy); padding:0.85rem 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 12px rgba(0,0,0,0.12);
+  }
+  .brand {
+    display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .brand img { height:32px; width:auto; }
+  .brand-name {
+    font-family:'Bodoni Moda',Georgia,serif;
+    font-size:1.5rem; font-weight:900; color:white;
+    letter-spacing:-0.5px;
+  }
+  .brand-name span { color:var(--gold-light); }
+  .header-deadline {
+    font-family:'DM Mono',monospace; font-size:13px;
+    color:rgba(255,255,255,0.7);
+  }
+  .header-deadline strong { color:var(--gold-light); }
 
+  /* ============ HERO ============ */
   .hero {
-    background:var(--navy); padding:5rem 3rem 4rem;
-    position:relative; overflow:hidden;
-    min-height:88vh; display:flex;
-    flex-direction:column; justify-content:center;
+    background:var(--surface);
+    border-bottom:1px solid var(--border-soft);
+    padding:3.5rem 1.5rem 4rem;
   }
-  .hero::before {
-    content:''; position:absolute; top:-30%; right:-5%;
-    width:50%; height:160%;
-    background:radial-gradient(ellipse, rgba(200,146,10,0.07) 0%, transparent 65%);
-    pointer-events:none;
-  }
-  .hero::after {
-    content:''; position:absolute; bottom:0; left:0; right:0;
-    height:3px; background:linear-gradient(90deg,transparent,var(--gold),transparent);
-  }
-  .hero-inner {
-    max-width:1000px; margin:0 auto; width:100%; position:relative; z-index:2;
-  }
+  .hero-inner { max-width:760px; margin:0 auto; text-align:center; }
   .hero h1 {
     font-family:'Bodoni Moda',serif;
-    font-size:clamp(3.5rem,9vw,6rem); font-weight:900;
-    letter-spacing:-2px; color:white; line-height:0.95;
-    margin:0 0 0.5rem 0;
-  }
-  .hero h1 em { font-style:normal; color:#FFD000; }
-  .hero-sub2 {
-    font-family:'Bodoni Moda',serif; font-size:clamp(1.3rem,3vw,2rem);
-    color:white; font-weight:700; letter-spacing:-0.5px;
-    margin-bottom:1rem; line-height:1.2;
+    font-size:clamp(2.2rem, 6vw, 3.4rem);
+    font-weight:900; color:var(--navy);
+    line-height:1.15; letter-spacing:-1px;
+    margin-bottom:1rem;
   }
   .hero-sub {
-    color:rgba(255,255,255,0.9); font-size:1rem;
-    max-width:560px; line-height:1.7; font-weight:300;
-    margin-bottom:2.5rem;
+    font-size:20px; color:var(--text);
+    line-height:1.5; margin-bottom:2rem;
+    font-weight:400;
   }
-  .search-row-hero {
-    display:flex; gap:0.65rem; flex-wrap:wrap;
-    max-width:800px; margin-bottom:0.75rem;
-  }
-  .search-row-hero input {
-    padding:1rem 1.25rem; border:none; border-radius:6px;
-    font-family:'Lato',sans-serif; font-size:0.9rem;
-    color:var(--text); outline:none; letter-spacing:0.5px;
-  }
-  .search-row-hero input#address-input { flex:2; min-width:200px; }
-  .search-row-hero input#zip-input { flex:0 0 160px; min-width:130px; }
-  .search-btn-hero {
-    background:var(--gold); color:var(--navy); border:none;
-    padding:1rem 2rem; border-radius:6px; font-family:'Lato',sans-serif;
-    font-size:0.95rem; font-weight:700; cursor:pointer;
-    letter-spacing:1px; text-transform:uppercase; white-space:nowrap;
-    transition:background 0.2s;
-  }
-  .search-btn-hero:hover { background:var(--gold-light); }
-  .search-btn-hero:disabled { opacity:0.6; cursor:wait; }
 
-  .trust-line {
-    display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+  .search-form {
+    max-width:600px; margin:0 auto;
+    display:flex; flex-direction:column; gap:0.75rem;
   }
-  .trust-item {
-    display:flex; align-items:center; gap:0.4rem;
-    color:rgba(255,255,255,0.55); font-size:0.72rem;
-    font-family:'DM Mono',monospace; letter-spacing:0.5px;
+  .search-row {
+    display:flex; gap:0.65rem;
   }
-  .trust-dot { color:rgba(255,255,255,0.2); font-size:0.8rem; }
-  .hero-disclaimer {
-    font-size:0.62rem; color:rgba(255,255,255,0.25); margin-top:0.5rem;
+  .search-row input {
+    height:56px; padding:0 1rem;
+    border:2px solid var(--border); border-radius:8px;
+    background:white; color:var(--text);
+    font-family:'Lato',sans-serif; font-size:17px;
+    outline:none;
+    transition:border-color 0.15s;
   }
+  .search-row input:focus { border-color:var(--navy); }
+  .search-row input#address-input { flex:1; }
+  .search-row input#zip-input { flex:0 0 130px; }
+  .search-btn {
+    height:56px; width:100%;
+    background:var(--gold); color:var(--navy);
+    border:none; border-radius:8px;
+    font-family:'Bebas Neue','Lato',sans-serif;
+    font-size:24px; font-weight:400;
+    letter-spacing:1.5px;
+    cursor:pointer;
+    transition:background 0.15s, transform 0.1s;
+  }
+  .search-btn:hover { background:var(--gold-light); }
+  .search-btn:active { transform:translateY(1px); }
+  .search-btn:disabled { opacity:0.7; cursor:wait; }
+
   .hero-error {
-    background:rgba(192,57,43,0.15); border:1px solid rgba(192,57,43,0.4);
-    color:#ff6b6b; font-size:0.85rem; padding:0.65rem 1rem;
-    border-radius:8px; margin-top:0.75rem; max-width:800px; display:none;
+    background:#FDECEA; border:1px solid #F5B7B1;
+    color:#922B21; font-size:16px;
+    padding:0.75rem 1rem; border-radius:8px;
+    margin-top:0.75rem; max-width:600px;
+    margin-left:auto; margin-right:auto;
+    display:none; text-align:left;
   }
 
-  .hero-stats {
-    display:flex; gap:2rem; flex-wrap:wrap;
-    margin-bottom:1.6rem; max-width:800px;
-    padding:0.85rem 0;
-    border-top:1px solid rgba(255,255,255,0.1);
-    border-bottom:1px solid rgba(255,255,255,0.1);
-  }
-  .hero-stat { display:flex; align-items:baseline; gap:0.55rem; flex:1; min-width:240px; }
-  .hero-stat-num {
-    font-family:'Bodoni Moda',serif; font-size:1.85rem; font-weight:900;
-    color:var(--gold); line-height:1; letter-spacing:-1px;
-  }
-  .hero-stat-text {
-    color:rgba(255,255,255,0.75); font-size:0.82rem; line-height:1.35;
-  }
-
-  /* Progress indicator */
-  .search-progress {
-    display:none; max-width:800px; margin-top:1rem;
-  }
+  .search-progress { display:none; max-width:600px; margin:1rem auto 0; }
   .search-progress.active { display:block; }
   .progress-bar-track {
-    width:100%; height:4px; background:rgba(255,255,255,0.1);
-    border-radius:4px; overflow:hidden; margin-bottom:0.7rem;
+    width:100%; height:4px; background:var(--border-soft);
+    border-radius:4px; overflow:hidden; margin-bottom:0.6rem;
   }
   .progress-bar-fill {
     height:100%; width:30%; background:var(--gold); border-radius:4px;
@@ -149,382 +139,973 @@
     100% { width:10%; opacity:0.7; }
   }
   .progress-status {
-    font-family:'DM Mono',monospace; font-size:0.75rem;
-    color:var(--gold); letter-spacing:0.5px;
-    min-height:1.2em;
+    font-family:'DM Mono',monospace; font-size:14px;
+    color:var(--gold); letter-spacing:0.4px;
+    min-height:1.2em; text-align:center;
     transition:opacity 0.3s;
   }
 
-  /* Marketing sections */
-  .section { padding:4rem 2rem; max-width:880px; margin:0 auto; }
-  .section-eyebrow { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:2.5px; text-transform:uppercase; color:#92670A; font-weight:600; margin-bottom:0.75rem; }
-  .section-h2 { font-family:'Bodoni Moda',serif; font-size:2.25rem; color:var(--navy); margin-bottom:0.75rem; line-height:1.2; }
-  .section-sub { color:var(--muted); font-size:1.05rem; line-height:1.8; max-width:580px; margin-bottom:2.5rem; }
-  .disclaimer-note { font-size:0.73rem; color:var(--muted); margin-top:1rem; font-style:italic; }
-
-  .compare-table { display:grid; grid-template-columns:1fr 1fr; border-radius:10px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.1); }
-  .col-head { padding:0.9rem 1.5rem; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; font-family:'DM Mono',monospace; }
-  .col-head.diy { background:#E5E7EB; color:#374151; }
-  .col-head.vc { background:var(--gold); color:var(--navy); }
-  .row-diy { padding:0.85rem 1.5rem; border-bottom:1px solid #E5E7EB; font-size:0.87rem; color:#4B5563; background:#F9FAFB; font-weight:500; }
-  .row-vc { padding:0.85rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.07); font-size:0.87rem; color:white; font-weight:500; background:var(--navy); }
-  .row-vc.gt { color:var(--gold); font-weight:600; }
-  .row-diy:last-child,.row-vc:last-child { border-bottom:none; }
-
-  .stats-bar { background:var(--navy); padding:2.5rem 2rem; }
-  .stats-inner { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:2rem; max-width:820px; margin:0 auto; text-align:center; }
-  .stat-num { font-family:'Bodoni Moda',serif; font-size:2.25rem; font-weight:900; color:var(--gold); line-height:1; }
-  .stat-label { color:rgba(255,255,255,0.85); font-size:0.78rem; margin-top:0.35rem; line-height:1.4; }
-
-  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.25rem; margin-top:2.5rem; }
-  .step { background:white; border-radius:10px; padding:1.6rem; border-top:3px solid var(--gold); box-shadow:0 2px 10px rgba(0,0,0,0.06); }
-  .step-num { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:1px; color:var(--gold); margin-bottom:0.7rem; }
-  .step h3 { font-family:'Bodoni Moda',serif; font-size:1.05rem; color:var(--navy); margin-bottom:0.45rem; }
-  .step p { font-size:0.86rem; color:var(--muted); line-height:1.6; }
-
-  .tiers-bg { background:var(--navy); padding:4rem 2rem; }
-  .tiers-inner { max-width:880px; margin:0 auto; }
-  .tier-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-top:2rem; }
-  .tier-card { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1.4rem; }
-  .tier-badge { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; background:var(--gold); color:var(--navy); padding:0.18rem 0.55rem; border-radius:3px; font-weight:600; display:inline-block; margin-bottom:0.9rem; }
-  .tier-card h3 { color:#FFFFFF; font-size:1.15rem; font-weight:700; margin-bottom:0.6rem; }
-  .tier-card p { color:rgba(255,255,255,0.5); font-size:0.82rem; line-height:1.6; }
-
-  .faq-s { padding:4rem 2rem; max-width:680px; margin:0 auto; }
-  .faq-s h2 { font-family:'Bodoni Moda',serif; font-size:1.7rem; color:var(--navy); margin-bottom:2rem; }
-  .faq-item { border-bottom:1px solid #E5E7EB; padding:1.2rem 0; }
-  .faq-q { font-weight:600; color:var(--navy); margin-bottom:0.45rem; font-size:0.92rem; }
-  .faq-a { font-size:0.86rem; color:var(--muted); line-height:1.6; }
-
-  .email-bg { background:var(--navy); padding:3rem 2rem; text-align:center; }
-  .email-bg h2 { font-family:'Bodoni Moda',serif; font-size:1.6rem; color:white; margin-bottom:0.65rem; }
-  .email-bg p { color:rgba(255,255,255,0.55); margin-bottom:1.5rem; font-size:0.9rem; }
-  .email-row { display:flex; gap:0.65rem; max-width:400px; margin:0 auto; flex-wrap:wrap; justify-content:center; }
-  .email-row input { flex:1; min-width:190px; padding:0.85rem 1rem; border:none; border-radius:8px; font-family:'Lato',sans-serif; font-size:0.92rem; outline:none; }
-  .email-row button { background:var(--gold); color:var(--navy); border:none; padding:0.85rem 1.4rem; border-radius:8px; font-family:'Lato',sans-serif; font-weight:700; cursor:pointer; }
-
-  /* Savings Calculator */
-  .calc-bg { background:var(--navy); padding:3.5rem 2rem; }
-  .calc-inner { max-width:580px; margin:0 auto; }
-  .calc-eyebrow { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:0.65rem; }
-  .calc-h2 { font-family:'Bodoni Moda',serif; font-size:1.8rem; color:white; margin-bottom:0.5rem; line-height:1.2; }
-  .calc-sub { color:rgba(255,255,255,0.5); font-size:0.88rem; margin-bottom:1.8rem; }
-  .calc-input-wrap { position:relative; margin-bottom:1.5rem; }
-  .calc-input-wrap label { display:block; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:0.4rem; }
-  .calc-input-wrap input {
-    width:100%; padding:1rem 1.2rem 1rem 1.8rem; border:2px solid rgba(255,255,255,0.12);
-    border-radius:10px; background:rgba(255,255,255,0.06); color:white;
-    font-family:Impact,'Arial Narrow',sans-serif; font-size:1.8rem; font-weight:400;
-    outline:none; transition:border-color 0.2s;
+  .sample-cta-row { margin-top:1.5rem; text-align:center; }
+  .sample-cta-row a {
+    display:inline-block;
+    color:var(--navy);
+    font-family:'Lato',sans-serif;
+    font-size:16px; font-weight:600;
+    text-decoration:none;
+    border:2px solid var(--border);
+    border-radius:8px;
+    padding:0.7rem 1.4rem;
+    min-height:48px;
+    transition:border-color 0.15s, color 0.15s;
   }
-  .calc-input-wrap input:focus { border-color:var(--gold); }
-  .calc-input-wrap .calc-dollar { position:absolute; left:0.9rem; bottom:1.05rem; color:rgba(255,255,255,0.35); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.5rem; pointer-events:none; }
-  .calc-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:10px; overflow:hidden; margin-bottom:1rem; }
-  .calc-table th { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; padding:0.7rem 1rem; text-align:left; }
-  .calc-table th:first-child { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.4); width:40%; }
-  .calc-table th:nth-child(2) { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5); }
-  .calc-table th:nth-child(3) { background:rgba(200,146,10,0.15); color:var(--gold); }
-  .calc-table td { padding:0.75rem 1rem; font-size:0.92rem; border-bottom:1px solid rgba(255,255,255,0.06); }
-  .calc-table td:first-child { color:rgba(255,255,255,0.55); font-size:0.82rem; background:rgba(255,255,255,0.02); }
-  .calc-table td:nth-child(2) { color:rgba(255,255,255,0.7); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.05rem; background:rgba(255,255,255,0.03); }
-  .calc-table td:nth-child(3) { color:var(--gold); font-family:Impact,'Arial Narrow',sans-serif; font-size:1.05rem; font-weight:400; background:rgba(200,146,10,0.06); }
-  .calc-table tr:last-child td { border-bottom:none; }
-  .calc-savings-row td { border-top:2px solid var(--gold) !important; padding-top:0.9rem; }
-  .calc-savings-row td:nth-child(3) { font-size:1.4rem; color:#4ADE80; }
-  .calc-note { font-size:0.68rem; color:rgba(255,255,255,0.3); text-align:center; line-height:1.5; }
+  .sample-cta-row a:hover { border-color:var(--navy); }
 
-  /* Protest Strength Score panel */
-  .strength-panel {
-    background:linear-gradient(180deg, #0E2548, #0B1F3A);
-    border:1px solid rgba(200,146,10,0.35);
-    border-radius:12px; padding:1.6rem 1.5rem 1.4rem;
+  .hero-disclaimer {
+    margin-top:1.5rem; font-size:14px;
+    color:var(--muted); text-align:center;
+  }
+
+  /* ============ HOW IT WORKS ============ */
+  .how-it-works {
+    padding:3.5rem 1.5rem;
+    background:var(--bg);
+  }
+  .how-inner { max-width:960px; margin:0 auto; }
+  .section-eyebrow {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold); font-weight:600;
+    margin-bottom:0.6rem; text-align:center;
+  }
+  .section-h2 {
+    font-family:'Bodoni Moda',serif;
+    font-size:28px; font-weight:900;
+    color:var(--navy); line-height:1.25;
+    text-align:center; margin-bottom:2.5rem;
+  }
+  .steps {
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1.5rem;
+  }
+  .step {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:12px;
+    padding:1.75rem 1.5rem;
+    text-align:center;
+  }
+  .step-num {
+    width:64px; height:64px;
+    border-radius:50%;
+    background:var(--navy); color:white;
+    font-family:'Bodoni Moda',serif;
+    font-size:24px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 1.1rem;
+    letter-spacing:-0.5px;
+  }
+  .step h3 {
+    font-size:20px; font-weight:700;
+    color:var(--navy); margin-bottom:0.5rem;
+    line-height:1.3;
+  }
+  .step p {
+    font-size:16px; color:var(--text);
+    line-height:1.6;
+  }
+
+  /* ============ WHY VALUCHECK COMPARE TABLE ============ */
+  .why-section {
+    padding:3.5rem 1.5rem;
+    background:var(--surface);
+  }
+  .why-inner { max-width:880px; margin:0 auto; }
+  .compare-header {
+    font-family:'DM Mono',monospace;
+    font-size:14px; letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+    text-align:center; margin-bottom:1rem;
+  }
+  .compare-table {
+    display:grid; grid-template-columns:1fr 1fr;
+    border:1px solid var(--border);
+    border-radius:10px; overflow:hidden;
+    box-shadow:0 2px 12px rgba(11,31,58,0.06);
+  }
+  .col-head {
+    padding:1rem 1.25rem;
+    font-weight:700; font-size:15px;
+    text-transform:uppercase; letter-spacing:1px;
+    font-family:'DM Mono',monospace;
+  }
+  .col-head.diy { background:#EAEEF3; color:#4B5563; }
+  .col-head.vc { background:var(--gold); color:var(--navy); }
+  .row-diy {
+    padding:0.95rem 1.25rem;
+    border-bottom:1px solid var(--border-soft);
+    font-size:15px; color:#4B5563;
+    background:#F7F9FC;
+    line-height:1.45;
+  }
+  .row-vc {
+    padding:0.95rem 1.25rem;
+    border-bottom:1px solid #CFE8DA;
+    font-size:15px; font-weight:600;
+    color:var(--navy);
+    background:var(--green-tint);
+    line-height:1.45;
+  }
+  .row-vc.gt { color:var(--green); font-weight:700; }
+  .row-diy:last-child, .row-vc:last-child { border-bottom:none; }
+  .why-disclaimer {
+    font-size:14px; color:var(--muted);
+    margin-top:1rem; text-align:center;
+    font-style:italic;
+  }
+
+  /* ============ STATS BAR ============ */
+  .stats-bar {
+    background:var(--navy);
+    padding:2.5rem 1.5rem;
+  }
+  .stats-inner {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:2rem; max-width:880px;
+    margin:0 auto; text-align:center;
+  }
+  .stat-num {
+    font-family:'Bodoni Moda',serif;
+    font-size:36px; font-weight:900;
+    color:var(--gold-light); line-height:1;
+  }
+  .stat-label {
+    color:rgba(255,255,255,0.85);
+    font-size:14px; margin-top:0.5rem;
+    line-height:1.5;
+  }
+
+  /* ============ TIERS ============ */
+  .tiers-section {
+    padding:3.5rem 1.5rem;
+    background:var(--bg);
+  }
+  .tiers-inner { max-width:960px; margin:0 auto; }
+  .tier-cards {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:1.25rem;
+  }
+  .tier-card {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:12px;
+    padding:1.5rem;
+  }
+  .tier-badge {
+    font-family:'DM Mono',monospace;
+    font-size:12px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    background:var(--gold); color:var(--navy);
+    padding:0.25rem 0.6rem; border-radius:4px;
+    font-weight:600; display:inline-block;
+    margin-bottom:0.85rem;
+  }
+  .tier-card h3 {
+    color:var(--navy); font-size:22px;
+    font-weight:700; margin-bottom:0.55rem;
+  }
+  .tier-card p {
+    color:var(--text); font-size:16px;
+    line-height:1.6;
+  }
+
+  /* ============ SAVINGS CALCULATOR ============ */
+  .calc-section {
+    padding:3.5rem 1.5rem;
+    background:var(--surface);
+  }
+  .calc-inner { max-width:680px; margin:0 auto; }
+  .calc-prompt {
+    text-align:center;
+    font-size:16px; color:var(--text);
+    margin-bottom:1.25rem;
+  }
+  .calc-input-wrap { position:relative; margin-bottom:1.5rem; }
+  .calc-input-wrap label {
+    display:block; font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted); margin-bottom:0.5rem;
+  }
+  .calc-input-wrap input {
+    width:100%; height:56px;
+    padding:0 1rem 0 2rem;
+    border:2px solid var(--border); border-radius:8px;
+    background:white; color:var(--text);
+    font-family:'Lato',sans-serif;
+    font-size:22px; font-weight:700;
+    outline:none;
+    transition:border-color 0.15s;
+  }
+  .calc-input-wrap input:focus { border-color:var(--navy); }
+  .calc-dollar {
+    position:absolute; left:0.85rem; top:38px;
+    height:56px; line-height:56px;
+    color:var(--muted);
+    font-size:22px; font-weight:700;
+    pointer-events:none;
+  }
+  .calc-table {
+    width:100%; border-collapse:separate; border-spacing:0;
+    border:1px solid var(--border);
+    border-radius:10px; overflow:hidden;
+    margin-bottom:0.75rem;
+  }
+  .calc-table th {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1px;
+    text-transform:uppercase;
+    padding:0.75rem 1rem; text-align:left;
+    background:#EAEEF3; color:#4B5563;
+  }
+  .calc-table th:nth-child(3) {
+    background:var(--green-tint); color:var(--green);
+  }
+  .calc-table td {
+    padding:0.85rem 1rem;
+    font-size:16px;
+    border-bottom:1px solid var(--border-soft);
+    color:var(--text);
+  }
+  .calc-table td:first-child {
+    color:var(--muted); font-size:15px;
+    background:#F7F9FC;
+  }
+  .calc-table td:nth-child(2) {
+    font-weight:600;
+  }
+  .calc-table td:nth-child(3) {
+    background:var(--green-tint);
+    color:var(--green); font-weight:700;
+  }
+  .calc-table tr:last-child td { border-bottom:none; }
+  .calc-savings-row td {
+    border-top:2px solid var(--gold) !important;
+    padding-top:1rem;
+  }
+  .calc-savings-row td:nth-child(3) {
+    font-size:20px;
+  }
+  .calc-note {
+    font-size:13px; color:var(--muted);
+    text-align:center; line-height:1.5;
+  }
+
+  /* ============ FAQ ============ */
+  .faq-section {
+    padding:3.5rem 1.5rem;
+    background:var(--bg);
+  }
+  .faq-inner { max-width:780px; margin:0 auto; }
+  .faq-item {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    padding:1.25rem 1.5rem;
+    margin-bottom:0.75rem;
+  }
+  .faq-q {
+    font-weight:700; color:var(--navy);
+    font-size:17px; line-height:1.4;
+    margin-bottom:0.5rem;
+  }
+  .faq-a {
+    font-size:16px; color:var(--text);
+    line-height:1.65;
+  }
+
+  /* ============ EMAIL CAPTURE ============ */
+  .email-section {
+    padding:3rem 1.5rem;
+    background:var(--navy);
+    text-align:center;
+  }
+  .email-section h2 {
+    font-family:'Bodoni Moda',serif;
+    font-size:26px; color:white;
+    margin-bottom:0.6rem;
+  }
+  .email-section p {
+    color:rgba(255,255,255,0.75);
+    font-size:16px; margin-bottom:1.5rem;
+  }
+  .email-row {
+    display:flex; gap:0.65rem;
+    max-width:480px; margin:0 auto;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .email-row input {
+    flex:1; min-width:200px; height:48px;
+    padding:0 1rem; border:none; border-radius:8px;
+    font-family:'Lato',sans-serif; font-size:16px;
+    outline:none;
+  }
+  .email-row button {
+    height:48px; min-width:120px;
+    background:var(--gold); color:var(--navy);
+    border:none; border-radius:8px;
+    font-family:'Lato',sans-serif;
+    font-size:16px; font-weight:700;
+    cursor:pointer;
+    padding:0 1.4rem;
+  }
+  .email-row button:hover { background:var(--gold-light); }
+
+  /* ============ FOOTER ============ */
+  footer {
+    background:#0A1628;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    color:rgba(255,255,255,0.7);
+    font-size:13px; line-height:1.85;
+  }
+  footer strong { color:white; }
+  footer a { color:var(--gold-light); text-decoration:none; }
+  footer a:hover { text-decoration:underline; }
+  .footer-contact {
+    margin-bottom:0.75rem; color:white;
+    font-size:14px;
+  }
+
+  /* ================================================================
+     RESULT VIEW
+     ================================================================ */
+  #search-view { display:block; }
+  #result-view {
+    display:none; min-height:100vh;
+    background:var(--bg); padding:2rem 1.25rem 4rem;
+  }
+  .result-inner { max-width:680px; margin:0 auto; }
+
+  .back-btn {
+    background:white; border:2px solid var(--border);
+    color:var(--navy);
+    font-family:'Lato',sans-serif;
+    font-size:15px; font-weight:600;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:0.5rem;
     margin-bottom:1.5rem;
-    box-shadow:0 6px 24px rgba(0,0,0,0.25);
+    height:48px; padding:0 1.25rem;
+    border-radius:8px;
+    transition:border-color 0.15s;
+  }
+  .back-btn:hover { border-color:var(--navy); }
+
+  .found-badge {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    background:var(--green-tint);
+    border:1px solid #B8DDC9;
+    color:var(--green);
+    font-size:14px; font-weight:600;
+    letter-spacing:0.5px;
+    padding:0.35rem 0.85rem; border-radius:100px;
+    margin-bottom:1rem;
+  }
+  .result-addr-display {
+    font-family:'Bodoni Moda',serif;
+    font-size:clamp(22px, 4vw, 30px);
+    color:var(--navy); font-weight:700;
+    line-height:1.25; margin-bottom:0.4rem;
+  }
+  .result-acct {
+    font-family:'DM Mono',monospace;
+    font-size:14px; color:var(--muted);
+    margin-bottom:1.5rem;
+  }
+
+  /* Alert banners */
+  .alert-banner {
+    border-radius:10px; padding:1rem 1.25rem;
+    margin-bottom:0.85rem;
+    display:none; line-height:1.55;
+  }
+  .alert-banner.visible { display:block; }
+  .alert-banner .alert-icon { font-size:18px; margin-right:0.4rem; }
+  .alert-banner .alert-text { font-size:15px; }
+  .alert-banner .alert-text strong { font-weight:700; }
+  .alert-banner.yoy-gold {
+    background:#FFF8E5; border:1px solid #F5D78E;
+    color:#7A5A0A;
+  }
+  .alert-banner.yoy-red {
+    background:#FDECEA; border:1px solid #F5B7B1;
+    color:#922B21;
+  }
+  .alert-banner.homestead-blue {
+    background:#E8F1FB; border:1px solid #B8D4F0;
+    color:#1E4F8B;
+  }
+  .alert-banner.homestead-blue a {
+    color:#1E4F8B; text-decoration:underline; font-weight:700;
+  }
+
+  .value-compare {
+    display:grid; grid-template-columns:1fr auto 1fr;
+    gap:0.85rem; align-items:center;
+    margin-bottom:1.25rem;
+  }
+  .val-box {
+    background:white; border:1px solid var(--border);
+    border-radius:10px; padding:1.25rem 1rem;
+    text-align:center;
+  }
+  .val-box.protest {
+    background:#FFF8E5; border-color:var(--gold);
+  }
+  .val-label {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:0.45rem;
+  }
+  .val-box.protest .val-label { color:#7A5A0A; }
+  .val-num {
+    font-family:'Bodoni Moda',serif;
+    font-size:34px; font-weight:900;
+    color:var(--navy); line-height:1;
+  }
+  .val-box.protest .val-num { color:var(--gold); }
+  .val-arrow { color:var(--muted); font-size:20px; text-align:center; }
+
+  .savings-block {
+    background:var(--green-tint);
+    border:1px solid #B8DDC9;
+    border-radius:10px;
+    padding:1.25rem 1.5rem;
+    display:flex; align-items:center;
+    justify-content:space-between;
+    margin-bottom:1.5rem;
+  }
+  .savings-label {
+    font-size:15px; color:var(--text);
+    margin-bottom:0.2rem;
+  }
+  .savings-amount {
+    font-family:'Bodoni Moda',serif;
+    font-size:34px; font-weight:900;
+    color:var(--green); line-height:1;
+  }
+  .savings-sub {
+    font-size:13px; color:var(--muted);
+    margin-top:0.3rem;
+  }
+  .savings-right { text-align:right; }
+  .savings-sqft {
+    font-family:'DM Mono',monospace;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .savings-sqft.over {
+    color:var(--green); font-weight:700;
+    margin-top:0.3rem; font-size:16px;
+  }
+
+  /* Protest Strength panel */
+  .strength-panel {
+    background:white;
+    border:2px solid var(--gold);
+    border-radius:12px;
+    padding:1.75rem 1.5rem 1.4rem;
+    margin-bottom:1.5rem;
+    box-shadow:0 4px 16px rgba(200,146,10,0.15);
+    text-align:center;
   }
   .strength-hdr {
-    font-family:'DM Mono',monospace; font-size:0.62rem;
-    letter-spacing:2.5px; text-transform:uppercase;
-    color:rgba(200,146,10,0.85); text-align:center;
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold); font-weight:600;
     margin-bottom:0.85rem;
   }
   .strength-num {
-    font-family:'DM Mono',monospace; font-size:3.2rem;
-    font-weight:500; color:var(--gold); text-align:center;
-    line-height:1; letter-spacing:-2px; margin-bottom:0.1rem;
+    font-family:'Bodoni Moda',serif;
+    font-size:64px; font-weight:900;
+    color:var(--gold); line-height:1;
+    letter-spacing:-2px; margin-bottom:0.3rem;
   }
   .strength-num small {
-    font-size:1.4rem; color:rgba(200,146,10,0.55);
+    font-size:24px; color:var(--muted);
     font-weight:400; letter-spacing:0;
   }
   .strength-grade {
-    text-align:center; font-family:'Bodoni Moda',serif;
-    font-size:1rem; color:rgba(255,255,255,0.85);
-    margin-bottom:0.95rem;
+    font-family:'Bodoni Moda',serif;
+    font-size:18px; color:var(--text);
+    margin-bottom:0.7rem;
   }
   .strength-grade strong { color:var(--gold); font-weight:900; }
+  .strength-plain {
+    font-size:16px; color:var(--text);
+    line-height:1.5; margin-bottom:1rem;
+    padding:0 0.5rem;
+  }
+  .strength-plain strong { color:var(--navy); font-weight:700; }
   .strength-bar-wrap {
-    background:rgba(255,255,255,0.06); border-radius:6px;
-    height:9px; overflow:hidden; margin-bottom:0.55rem;
+    background:var(--border-soft); border-radius:6px;
+    height:10px; overflow:hidden; margin-bottom:0.55rem;
   }
   .strength-bar-fill {
-    height:100%; background:linear-gradient(90deg,#C8920A,#E5A912);
+    height:100%;
+    background:linear-gradient(90deg, var(--gold), var(--gold-light));
     border-radius:6px; transition:width 0.6s ease;
   }
   .strength-bar-label {
-    text-align:center; font-family:'DM Mono',monospace;
-    font-size:0.66rem; letter-spacing:1.5px; text-transform:uppercase;
-    color:rgba(255,255,255,0.55); margin-bottom:1rem;
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted); margin-bottom:1rem;
   }
   .strength-bullets {
-    display:flex; flex-direction:column; gap:0.4rem;
-    border-top:1px solid rgba(255,255,255,0.07); padding-top:0.95rem;
+    display:flex; flex-direction:column; gap:0.5rem;
+    border-top:1px solid var(--border-soft);
+    padding-top:1rem; text-align:left;
   }
   .strength-bullet {
-    display:flex; align-items:center; gap:0.55rem;
-    font-size:0.85rem; color:rgba(255,255,255,0.78);
+    display:flex; align-items:flex-start; gap:0.6rem;
+    font-size:16px; color:var(--text);
+    line-height:1.45;
   }
-  .strength-bullet.ok::before { content:'\2713'; color:#4ADE80;
-    font-weight:700; flex-shrink:0; width:0.95rem; text-align:center; }
-  .strength-bullet.bad::before { content:'\2717'; color:#F87171;
-    font-weight:700; flex-shrink:0; width:0.95rem; text-align:center; }
-  .strength-bullet.bad { color:rgba(255,255,255,0.55); }
+  .strength-bullet.ok::before {
+    content:'\2713'; color:var(--green);
+    font-weight:700; flex-shrink:0; width:1rem;
+  }
+  .strength-bullet.bad::before {
+    content:'\2717'; color:#B91C1C;
+    font-weight:700; flex-shrink:0; width:1rem;
+  }
+  .strength-bullet.bad { color:var(--muted); }
 
-  /* Pre-paywall conversion hook */
   .cta-score-hook {
-    background:linear-gradient(135deg, rgba(200,146,10,0.14), rgba(200,146,10,0.05));
-    border:1px solid rgba(200,146,10,0.35);
-    border-radius:10px; padding:0.85rem 1.1rem;
-    color:var(--navy); font-size:0.92rem; line-height:1.45;
+    background:#FFF8E5; border:1px solid var(--gold);
+    border-radius:10px; padding:0.95rem 1.1rem;
+    color:var(--navy); font-size:16px; line-height:1.45;
     margin-bottom:1.1rem; text-align:center;
   }
   .cta-score-hook strong {
-    font-family:'DM Mono',monospace; color:#92670A; font-weight:600;
+    font-family:'DM Mono',monospace;
+    color:#7A5A0A; font-weight:700;
     letter-spacing:0.5px;
   }
 
-  /* Tax impact mini-table on result page */
-  .tax-impact { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; margin-bottom:1.5rem; }
-  .tax-impact-hdr { padding:0.6rem 1.1rem; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.07); font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
-  .tax-impact-row { display:flex; justify-content:space-between; align-items:center; padding:0.7rem 1.1rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+  /* Tax impact mini-table */
+  .tax-impact {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:10px; overflow:hidden;
+    margin-bottom:1.5rem;
+  }
+  .tax-impact-hdr {
+    padding:0.75rem 1.25rem;
+    background:#F7F9FC;
+    border-bottom:1px solid var(--border-soft);
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted); font-weight:600;
+  }
+  .tax-impact-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:0.85rem 1.25rem;
+    border-bottom:1px solid var(--border-soft);
+  }
   .tax-impact-row:last-child { border-bottom:none; }
-  .tax-impact-label { font-size:0.82rem; color:rgba(255,255,255,0.55); }
+  .tax-impact-label {
+    font-size:15px; color:var(--text);
+  }
   .tax-impact-vals { display:flex; gap:1.5rem; }
-  .tax-impact-before { font-family:Impact,'Arial Narrow',sans-serif; font-size:0.95rem; color:rgba(255,255,255,0.45); }
-  .tax-impact-after { font-family:Impact,'Arial Narrow',sans-serif; font-size:0.95rem; color:var(--gold); }
-  .tax-impact-row.savings-row { border-top:1px solid rgba(200,146,10,0.3); }
-  .tax-impact-row.savings-row .tax-impact-label { color:rgba(255,255,255,0.7); font-weight:600; }
-  .tax-impact-row.savings-row .tax-impact-after { color:#4ADE80; font-size:1.1rem; }
+  .tax-impact-before {
+    font-family:'Bodoni Moda',serif;
+    font-size:16px; color:var(--muted);
+    text-decoration:line-through;
+  }
+  .tax-impact-after {
+    font-family:'Bodoni Moda',serif;
+    font-size:16px; font-weight:700;
+    color:var(--gold);
+  }
+  .tax-impact-row.savings-row {
+    border-top:1px solid var(--gold);
+    background:#FFFCF1;
+  }
+  .tax-impact-row.savings-row .tax-impact-label {
+    color:var(--navy); font-weight:700;
+  }
+  .tax-impact-row.savings-row .tax-impact-after {
+    color:var(--green); font-size:18px;
+  }
 
-  footer { background:#060E1B; padding:2rem; text-align:center; color:rgba(255,255,255,0.28); font-size:0.76rem; line-height:2; }
-  footer strong { color:rgba(255,255,255,0.45); }
-
-  /* === RESULT VIEW === */
-  #result-view { display:none; min-height:100vh; background:var(--navy); padding-top:60px; }
-  .result-inner { max-width:620px; margin:0 auto; padding:2.5rem 1.5rem 5rem; }
-
-  .back-btn { background:#C8920A; border:none; color:#0B1F3A; font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:600; letter-spacing:0.5px; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:2rem; padding:0.55rem 1.1rem; border-radius:8px; transition:background 0.2s, transform 0.1s; }
-  .back-btn:hover { background:#E5A912; transform:translateY(-1px); }
-
-  .found-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(26,122,74,0.2); border:1px solid rgba(26,122,74,0.4); color:#4ADE80; font-size:0.72rem; font-family:'DM Mono',monospace; letter-spacing:1px; padding:0.3rem 0.8rem; border-radius:100px; margin-bottom:0.9rem; }
-  .result-addr-display { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(1.3rem,4vw,2rem); color:white; font-weight:400; line-height:1.2; margin-bottom:0.35rem; }
-  .result-acct { font-family:'DM Mono',monospace; font-size:0.7rem; color:rgba(255,255,255,0.35); margin-bottom:2rem; }
-
-  /* Alert banners */
-  .alert-banner { border-radius:10px; padding:1rem 1.25rem; margin-bottom:1rem; display:none; line-height:1.55; }
-  .alert-banner.visible { display:block; }
-  .alert-banner .alert-icon { font-size:1.1rem; margin-right:0.35rem; }
-  .alert-banner .alert-text { font-size:0.85rem; }
-  .alert-banner .alert-text strong { font-weight:700; }
-  .alert-banner.yoy-gold { background:rgba(200,146,10,0.15); border:1px solid rgba(200,146,10,0.4); color:#F5D78E; }
-  .alert-banner.yoy-red { background:rgba(192,57,43,0.18); border:1px solid rgba(192,57,43,0.45); color:#F5A8A0; }
-  .alert-banner.yoy-red .alert-text strong { color:#FF7B6F; }
-  .alert-banner.yoy-gold .alert-text strong { color:var(--gold-light); }
-  .alert-banner.homestead-blue { background:rgba(96,165,250,0.12); border:1px solid rgba(96,165,250,0.35); color:#93C5FD; }
-  .alert-banner.homestead-blue .alert-text strong { color:#60A5FA; }
-  .alert-banner.homestead-blue a { color:#60A5FA; text-decoration:underline; }
-
-  .value-compare { display:grid; grid-template-columns:1fr auto 1fr; gap:0.75rem; align-items:center; margin-bottom:1.25rem; }
-  .val-box { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1.25rem 1rem; text-align:center; }
-  .val-box.protest { background:rgba(200,146,10,0.12); border-color:rgba(200,146,10,0.35); }
-  .val-label { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:0.4rem; margin-bottom:0; }
-  .val-box.protest .val-label { color:rgba(200,146,10,0.75); }
-  .val-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:2.5rem; font-weight:400; color:white; line-height:1; }
-  .val-box.protest .val-num { color:var(--gold); }
-  .val-arrow { color:rgba(255,255,255,0.2); font-size:1.25rem; text-align:center; }
-
-  .savings-block { background:linear-gradient(135deg,rgba(26,122,74,0.15),rgba(26,122,74,0.06)); border:1px solid rgba(26,122,74,0.3); border-radius:10px; padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
-  .savings-label { font-size:0.78rem; color:rgba(255,255,255,0.5); margin-bottom:0.2rem; }
-  .savings-amount { font-family:Impact,'Arial Narrow',sans-serif; font-size:2.5rem; font-weight:400; color:#4ADE80; line-height:1; }
-  .savings-sub { font-size:0.68rem; color:rgba(255,255,255,0.3); margin-top:0.2rem; }
-  .savings-right { text-align:right; }
-  .savings-sqft { font-family:Impact,'Arial Narrow',sans-serif; font-size:0.8rem; font-weight:400; color:rgba(255,255,255,0.45); }
-  .savings-sqft.over { color:#4ADE80; margin-top:0.25rem; font-size:0.9rem; }
-
-  .tier-summary { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; margin-bottom:1.5rem; }
-  .tier-summary-hdr { padding:0.7rem 1.25rem; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.07); font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
-  .tier-row { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+  /* Tier summary */
+  .tier-summary {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:10px; overflow:hidden;
+    margin-bottom:1.5rem;
+  }
+  .tier-summary-hdr {
+    padding:0.75rem 1.25rem;
+    background:#F7F9FC;
+    border-bottom:1px solid var(--border-soft);
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted); font-weight:600;
+  }
+  .tier-row {
+    display:flex; align-items:center;
+    justify-content:space-between;
+    padding:0.95rem 1.25rem;
+    border-bottom:1px solid var(--border-soft);
+  }
   .tier-row:last-child { border-bottom:none; }
   .tier-left { display:flex; align-items:center; gap:0.75rem; }
-  .tier-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .tier-dot.t1 { background:#4ADE80; }
+  .tier-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .tier-dot.t1 { background:var(--green-dot); }
   .tier-dot.t2 { background:var(--gold); }
   .tier-dot.t3 { background:#60A5FA; }
-  .tier-name { font-size:0.85rem; color:rgba(255,255,255,0.7); }
-  .tier-count { font-family:'DM Mono',monospace; font-size:0.7rem; color:rgba(255,255,255,0.3); }
-  .tier-val { font-family:Impact,'Arial Narrow',sans-serif; font-size:1.25rem; font-weight:400; color:white; }
-
-  .preview-wrap { margin-bottom:2rem; position:relative; }
-  .preview-label { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:0.7rem; }
-  .preview-rows { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; filter:blur(5px); pointer-events:none; user-select:none; }
-  .preview-row { display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85rem; }
-  .preview-row:last-child { border-bottom:none; }
-  .pr-addr { color:rgba(255,255,255,0.65); }
-  .pr-val { font-family:'DM Mono',monospace; font-size:0.75rem; color:rgba(255,255,255,0.35); }
-  .preview-fade { position:absolute; bottom:0; left:0; right:0; height:65%; background:linear-gradient(to bottom,transparent,var(--navy) 90%); }
-
-  .cta-block { background:white; border-radius:14px; padding:2rem; text-align:center; }
-  .cta-top { font-size:0.8rem; color:var(--muted); margin-bottom:0.35rem; }
-  .cta-headline { font-family:'Bodoni Moda',serif; font-size:1.35rem; font-weight:700; color:var(--navy); margin-bottom:0.35rem; line-height:1.25; }
-  .cta-sub { font-size:0.8rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.5; }
-  .cta-main {
-    display:block; width:100%; background:var(--gold); color:var(--navy);
-    border:none; padding:1.15rem 2rem; border-radius:10px; font-family:'Lato',sans-serif;
-    font-size:1.1rem; font-weight:700; cursor:pointer;
-    transition:background 0.2s,transform 0.15s;
-    letter-spacing:-0.2px; margin-bottom:0.65rem;
-    box-shadow:0 4px 20px rgba(200,146,10,0.35);
+  .tier-name {
+    font-size:16px; color:var(--text); font-weight:600;
   }
-  .cta-main:hover { background:var(--gold-light); transform:translateY(-2px); box-shadow:0 8px 28px rgba(200,146,10,0.4); }
-  .cta-price-note { font-size:0.75rem; color:var(--muted); margin-bottom:1.25rem; }
-  .cta-divider { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; }
-  .cta-divider::before,.cta-divider::after { content:''; flex:1; height:1px; background:#E5E7EB; }
-  .cta-divider span { font-size:0.7rem; color:var(--muted); white-space:nowrap; }
+  .tier-count {
+    font-family:'DM Mono',monospace;
+    font-size:13px; color:var(--muted);
+  }
+  .tier-val {
+    font-family:'Bodoni Moda',serif;
+    font-size:18px; font-weight:700;
+    color:var(--navy);
+  }
+
+  /* Preview rows */
+  .preview-wrap { margin-bottom:1.75rem; position:relative; }
+  .preview-label {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted); font-weight:600;
+    margin-bottom:0.7rem;
+  }
+  .preview-rows {
+    background:white; border:1px solid var(--border-soft);
+    border-radius:10px; overflow:hidden;
+    filter:blur(5px); pointer-events:none; user-select:none;
+  }
+  .preview-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:0.95rem 1.25rem;
+    border-bottom:1px solid var(--border-soft);
+    font-size:15px;
+  }
+  .preview-row:last-child { border-bottom:none; }
+  .pr-addr { color:var(--text); }
+  .pr-val { font-family:'DM Mono',monospace; font-size:14px; color:var(--muted); }
+  .preview-fade {
+    position:absolute; bottom:0; left:0; right:0;
+    height:65%;
+    background:linear-gradient(to bottom, transparent, var(--bg) 90%);
+  }
+
+  .sample-link-wrap { text-align:center; margin-bottom:1rem; }
+  .sample-link {
+    display:inline-block;
+    color:var(--navy);
+    font-family:'Lato',sans-serif;
+    font-size:15px; font-weight:600;
+    text-decoration:none;
+    border:2px solid var(--border);
+    border-radius:8px;
+    padding:0.65rem 1.4rem;
+    min-height:48px;
+    transition:border-color 0.15s;
+  }
+  .sample-link:hover { border-color:var(--navy); }
+
+  /* CTA block (paywall) */
+  .cta-block {
+    background:white;
+    border:1px solid var(--border-soft);
+    border-radius:14px; padding:2rem 1.5rem;
+    text-align:center;
+    box-shadow:0 4px 16px rgba(11,31,58,0.06);
+  }
+  .cta-top {
+    font-size:14px; color:var(--muted);
+    margin-bottom:0.4rem;
+  }
+  .cta-headline {
+    font-family:'Bodoni Moda',serif;
+    font-size:22px; font-weight:700;
+    color:var(--navy);
+    margin-bottom:0.5rem; line-height:1.3;
+  }
+  .cta-sub {
+    font-size:15px; color:var(--muted);
+    margin-bottom:1.5rem; line-height:1.5;
+  }
+  .cta-main {
+    display:block; width:100%; height:60px;
+    background:var(--gold); color:var(--navy);
+    border:none; border-radius:10px;
+    font-family:'Bebas Neue','Lato',sans-serif;
+    font-size:24px; font-weight:400;
+    letter-spacing:1.5px;
+    cursor:pointer;
+    transition:background 0.15s, transform 0.1s;
+    margin-bottom:0.7rem;
+    box-shadow:0 4px 14px rgba(200,146,10,0.3);
+  }
+  .cta-main:hover { background:var(--gold-light); }
+  .cta-main:active { transform:translateY(1px); }
+  .cta-price-note {
+    font-size:14px; color:var(--muted);
+    margin-bottom:1.25rem;
+  }
+  .cta-divider {
+    display:flex; align-items:center; gap:0.75rem;
+    margin-bottom:1.25rem;
+  }
+  .cta-divider::before, .cta-divider::after {
+    content:''; flex:1; height:1px; background:var(--border);
+  }
+  .cta-divider span {
+    font-size:13px; color:var(--muted);
+    white-space:nowrap;
+  }
   .cta-free {
-    display:block; width:100%; background:none; color:var(--navy);
-    border:2px solid #D1D5DB; padding:0.85rem; border-radius:10px;
-    font-family:'Lato',sans-serif; font-size:0.92rem; font-weight:600;
-    cursor:pointer; text-align:center; text-decoration:none; margin-bottom:1.25rem;
-    transition:border-color 0.2s;
+    display:block; width:100%; min-height:48px;
+    background:white; color:var(--navy);
+    border:2px solid var(--border);
+    padding:0.85rem; border-radius:10px;
+    font-family:'Lato',sans-serif;
+    font-size:16px; font-weight:600;
+    cursor:pointer; text-align:center;
+    margin-bottom:0.5rem;
+    transition:border-color 0.15s;
   }
   .cta-free:hover { border-color:var(--navy); }
-  .cta-trust { display:flex; align-items:center; justify-content:center; gap:1.25rem; flex-wrap:wrap; }
-  .cta-trust-item { display:flex; align-items:center; gap:0.3rem; font-size:0.7rem; color:var(--muted); }
+  .cta-free-note {
+    font-size:13px; color:var(--muted);
+    margin-top:0.25rem; margin-bottom:1.25rem;
+    text-align:center;
+  }
+  .cta-trust {
+    display:flex; align-items:center; justify-content:center;
+    gap:1rem; flex-wrap:wrap;
+  }
+  .cta-trust-item {
+    font-size:13px; color:var(--muted);
+  }
+
+  .secondary-sample-cta {
+    text-align:center; margin-top:1.5rem;
+  }
+  .secondary-sample-cta a {
+    display:inline-block; min-height:48px;
+    background:white; color:var(--navy);
+    border:2px solid var(--border);
+    padding:0.7rem 1.6rem; border-radius:10px;
+    font-family:'Lato',sans-serif;
+    font-size:15px; font-weight:600;
+    text-decoration:none;
+    transition:border-color 0.15s;
+  }
+  .secondary-sample-cta a:hover { border-color:var(--navy); }
 
   /* Modal */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(11,31,58,0.7); z-index:200;
+    align-items:center; justify-content:center; padding:1rem;
+  }
   .modal-overlay.visible { display:flex; }
-  .modal { background:white; border-radius:16px; width:100%; max-width:460px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.4); animation:fadeUp 0.3s ease both; position:relative; }
-  .modal-top { background:var(--navy); padding:1.5rem; text-align:center; }
-  .modal-top h3 { font-family:'Bodoni Moda',serif; color:white; font-size:1.25rem; margin-bottom:0.2rem; }
-  .modal-top p { color:rgba(255,255,255,0.5); font-size:0.78rem; }
-  .modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.2rem; cursor:pointer; }
+  .modal {
+    background:white; border-radius:16px;
+    width:100%; max-width:480px; overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+    animation:fadeUp 0.3s ease both; position:relative;
+  }
+  .modal-top {
+    background:var(--navy); padding:1.5rem;
+    text-align:center;
+  }
+  .modal-top h3 {
+    font-family:'Bodoni Moda',serif;
+    color:white; font-size:22px;
+    margin-bottom:0.3rem;
+  }
+  .modal-top p {
+    color:rgba(255,255,255,0.75); font-size:14px;
+  }
+  .modal-close {
+    position:absolute; top:1rem; right:1rem;
+    background:none; border:none;
+    color:rgba(255,255,255,0.7);
+    font-size:24px; cursor:pointer;
+    width:36px; height:36px;
+  }
   .modal-body { padding:1.6rem; }
-  .modal-summary { background:var(--cream); border-radius:8px; padding:0.9rem 1.1rem; margin-bottom:1.4rem; display:flex; justify-content:space-between; align-items:center; }
-  .modal-summary-left { font-size:0.8rem; color:var(--muted); }
-  .modal-summary-left strong { color:var(--text); display:block; font-size:0.9rem; margin-bottom:0.1rem; }
-  .modal-price { font-family:'Bodoni Moda',serif; font-size:1.75rem; font-weight:900; color:var(--navy); }
-  .modal-field { margin-bottom:0.9rem; }
-  .modal-field label { font-size:0.68rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); display:block; margin-bottom:0.3rem; }
-  .modal-field input { width:100%; padding:0.75rem 0.9rem; border:2px solid #E5E7EB; border-radius:8px; font-family:'Lato',sans-serif; font-size:0.92rem; outline:none; transition:border-color 0.2s; }
+  .modal-summary {
+    background:var(--bg); border-radius:8px;
+    padding:1rem 1.1rem; margin-bottom:1.4rem;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .modal-summary-left { font-size:14px; color:var(--muted); }
+  .modal-summary-left strong {
+    color:var(--text); display:block;
+    font-size:16px; margin-bottom:0.15rem;
+  }
+  .modal-price {
+    font-family:'Bodoni Moda',serif;
+    font-size:28px; font-weight:900;
+    color:var(--navy);
+  }
+  .modal-field { margin-bottom:1rem; }
+  .modal-field label {
+    font-size:14px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--muted); display:block;
+    margin-bottom:0.4rem;
+  }
+  .modal-field input {
+    width:100%; height:48px;
+    padding:0 1rem;
+    border:2px solid var(--border); border-radius:8px;
+    font-family:'Lato',sans-serif; font-size:16px;
+    outline:none; transition:border-color 0.15s;
+  }
   .modal-field input:focus { border-color:var(--navy); }
-  .modal-field-row { display:grid; grid-template-columns:1fr 1fr; gap:0.65rem; }
-  .pay-btn { width:100%; background:var(--navy); color:white; border:none; padding:0.95rem; border-radius:8px; font-family:'Lato',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; margin-top:0.5rem; transition:background 0.2s; }
-  .pay-btn:hover { background:#1a3a5c; }
-  .modal-trust { display:flex; align-items:center; justify-content:center; margin-top:0.75rem; font-size:0.7rem; color:var(--muted); text-align:center; }
+  .pay-btn {
+    width:100%; height:56px;
+    background:var(--gold); color:var(--navy);
+    border:none; border-radius:8px;
+    font-family:'Bebas Neue','Lato',sans-serif;
+    font-size:22px; font-weight:400;
+    letter-spacing:1.5px;
+    cursor:pointer; margin-top:0.5rem;
+    transition:background 0.15s;
+  }
+  .pay-btn:hover { background:var(--gold-light); }
+  .modal-trust {
+    display:flex; align-items:center; justify-content:center;
+    margin-top:0.85rem; font-size:13px;
+    color:var(--muted); text-align:center;
+  }
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-  /* Scroll indicator */
-  .scroll-hint { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); text-align:center; z-index:50; pointer-events:none; }
-  .scroll-hint.visible { display:block; animation:scrollFadeOut 4s ease forwards; }
-  .scroll-hint-arrow { font-size:1.6rem; color:#C8920A; animation:scrollBounce 1s ease infinite; }
-  .scroll-hint-text { font-family:'DM Mono',monospace; font-size:0.65rem; color:rgba(255,255,255,0.4); letter-spacing:0.5px; margin-top:0.15rem; }
-  @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
-  @keyframes scrollFadeOut { 0%,65%{opacity:1} 100%{opacity:0} }
-
-  .sample-link { display:inline-block; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.5px; text-decoration:none; border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:0.5rem 1.1rem; transition:border-color 0.2s, color 0.2s; margin-bottom:1.25rem; }
-  .sample-link:hover { color:var(--gold); border-color:var(--gold); }
-  .hero h1 { animation:fadeUp 0.5s ease both; }
-  .hero-sub { animation:fadeUp 0.5s 0.1s ease both; }
-
-  @media(max-width:580px) {
-    body { font-size:16px; }
-    .hero { padding:2.5rem 1.25rem 2rem; min-height:auto; }
-    .hero h1 { font-size:clamp(2.2rem,10vw,3rem); }
-    .hero-sub2 { font-size:1rem; }
-    .hero-sub { font-size:0.95rem; margin-bottom:1.5rem; line-height:1.6; }
-    .search-row-hero { flex-direction:column; }
-    .search-row-hero input, .search-row-hero input#zip-input { flex:1; min-width:0; width:100%; font-size:16px; padding:0.85rem 1rem; }
-    .search-btn-hero { width:100%; font-size:16px; padding:0.9rem 1.5rem; }
-    .trust-line { gap:0.5rem; }
-    .trust-item { font-size:0.68rem; }
-    .deadline-banner { font-size:0.8rem; padding:0.65rem 0.75rem; line-height:1.5; white-space:normal; word-wrap:break-word; }
-    .stats-inner { grid-template-columns:repeat(2,1fr); }
-    header { padding:0 0.75rem; }
+  /* ============ MOBILE ============ */
+  @media (max-width:600px) {
+    body { line-height:1.7; }
+    .deadline-banner { font-size:15px; padding:0.75rem 0.85rem; }
+    header { padding:0.75rem 1rem; }
     .header-deadline { display:none; }
-    .value-compare { grid-template-columns:1fr; }
-    .val-arrow { display:none; }
-    .val-num { font-size:1.8rem; }
-    .savings-amount { font-size:1.8rem; }
-    .tier-val { font-size:1rem; }
-    .modal-field-row { grid-template-columns:1fr; }
-    .compare-table { font-size:0.82rem; }
-    .section { padding:2.5rem 1.25rem; }
-    .section-h2 { font-size:1.5rem; }
-    .section-sub { font-size:0.95rem; }
-    .tiers-bg { padding:2.5rem 1.25rem; }
-    .faq-s { padding:2.5rem 1.25rem; }
+    .brand-name { font-size:1.25rem; }
+
+    .hero { padding:2.5rem 1rem 3rem; }
+    .hero h1 { font-size:30px; }
+    .hero-sub { font-size:18px; }
+    .search-row { flex-direction:column; gap:0.6rem; }
+    .search-row input#address-input,
+    .search-row input#zip-input {
+      flex:1; width:100%;
+      font-size:17px; height:56px;
+    }
+    .search-btn { font-size:22px; height:56px; }
+    .sample-cta-row a { font-size:16px; padding:0.8rem 1.4rem; }
+
+    .how-it-works,
+    .why-section,
+    .tiers-section,
+    .calc-section,
+    .faq-section,
+    .email-section { padding:2.5rem 1rem; }
+    .section-h2 { font-size:24px; }
+    .steps { grid-template-columns:1fr; gap:1rem; }
+    .step { padding:1.5rem 1.25rem; }
+    .step-num { width:56px; height:56px; font-size:20px; }
+    .step h3 { font-size:19px; }
+
+    .compare-table { font-size:14px; }
+    .col-head { padding:0.85rem 1rem; font-size:13px; }
+    .row-diy, .row-vc { padding:0.85rem 1rem; font-size:14px; }
+
+    .stats-bar { padding:2rem 1rem; }
+    .stats-inner { grid-template-columns:repeat(2,1fr); gap:1.5rem; }
+    .stat-num { font-size:28px; }
+
     .tier-cards { grid-template-columns:1fr; }
-    .steps { grid-template-columns:1fr; }
-    .savings-block { flex-direction:column; gap:1rem; }
+    .tier-card h3 { font-size:20px; }
+
+    .calc-input-wrap input { font-size:20px; }
+    .calc-dollar { font-size:20px; }
+    .calc-table th { padding:0.65rem 0.7rem; font-size:12px; }
+    .calc-table td { padding:0.75rem 0.7rem; font-size:15px; }
+    .calc-table td:first-child { font-size:14px; }
+    .calc-savings-row td:nth-child(3) { font-size:18px; }
+
+    .faq-item { padding:1.1rem 1.25rem; }
+    .faq-q { font-size:17px; }
+    .faq-a { font-size:16px; }
+
+    .email-row input, .email-row button { width:100%; flex:1 0 100%; }
+
+    #result-view { padding:1.5rem 1rem 3rem; }
+    .value-compare { grid-template-columns:1fr; gap:0.75rem; }
+    .val-arrow { display:none; }
+    .val-num { font-size:26px; }
+    .savings-block { flex-direction:column; align-items:flex-start; gap:1rem; }
     .savings-right { text-align:left; }
+    .savings-amount { font-size:28px; }
+    .strength-num { font-size:54px; }
+    .strength-num small { font-size:22px; }
     .cta-block { padding:1.5rem 1.25rem; }
-    .cta-headline { font-size:1.15rem; }
-    .calc-bg { padding:2.5rem 1.25rem; }
-    .calc-h2 { font-size:1.4rem; }
-    .calc-input-wrap input { font-size:1.5rem; padding:0.85rem 1rem 0.85rem 1.5rem; }
-    .calc-input-wrap .calc-dollar { font-size:1.2rem; bottom:0.9rem; }
-    .calc-table td, .calc-table th { padding:0.6rem 0.65rem; font-size:0.78rem; }
-    .calc-table td:nth-child(2), .calc-table td:nth-child(3) { font-size:0.92rem; }
-    .calc-savings-row td:nth-child(3) { font-size:1.15rem; }
+    .cta-headline { font-size:20px; }
+    .cta-main { font-size:22px; height:60px; }
+    .modal-field input { font-size:16px; }
   }
 </style>
 </head>
 <body>
 
+<div class="deadline-banner">
+  &#9888; Protest Deadline: <strong>May 15, 2026</strong> &mdash; <strong id="days-left">17 days</strong> remaining
+</div>
+
 <header>
-  <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="goHome()"><img src="/static/logo.svg" style="height:32px;width:auto;vertical-align:middle;"><span style="font-family:'Bodoni Moda',Georgia,serif;font-size:1.4rem;font-weight:900;color:white;letter-spacing:-0.5px;white-space:nowrap;word-spacing:0;">Valu<span style="color:#C8920A;">Check</span></span></div>
+  <div class="brand" onclick="goHome()">
+    <img src="/static/logo.svg" alt="ValuCheck logo">
+    <span class="brand-name">Valu<span>Check</span></span>
+  </div>
   <div class="header-deadline">Deadline: <strong>May 15, 2026</strong></div>
 </header>
-
-<div class="deadline-banner">
-  EPCAD Protest Deadline: <strong>May 15, 2026</strong> — <strong id="days-left"></strong> remaining to file Form 50-132
-</div>
 
 <!-- ============ SEARCH VIEW ============ -->
 <div id="search-view">
   <section class="hero">
     <div class="hero-inner">
-      <h1><em>Win With Data.</em></h1>
-      <div class="hero-sub2">Fight Your El Paso CAD Tax Bill.</div>
-      <p class="hero-sub">Enter your address. We analyze 238,000 El Paso properties and show you exactly how much you're being overcharged.</p>
+      <h1>Is EPCAD Overcharging You?</h1>
+      <p class="hero-sub">Enter your address below. We&rsquo;ll show you in 30 seconds.</p>
 
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="hero-stat-num">85%</span>
-          <span class="hero-stat-text">increase in El Paso home values since 2020</span>
+      <form class="search-form" onsubmit="event.preventDefault(); runSearch();">
+        <div class="search-row">
+          <input type="text" id="address-input" placeholder="Your property address" autocomplete="street-address" />
+          <input type="text" id="zip-input" placeholder="ZIP (optional)" inputmode="numeric" autocomplete="postal-code" />
         </div>
-        <div class="hero-stat">
-          <span class="hero-stat-num">74%</span>
-          <span class="hero-stat-text">of homeowners have never protested &mdash; most don't know how</span>
-        </div>
-      </div>
-
-      <div class="search-row-hero">
-        <input type="text" id="address-input" placeholder="YOUR PROPERTY ADDRESS" />
-        <input type="text" id="zip-input" placeholder="ZIP — OPTIONAL" />
-        <button class="search-btn-hero" id="analyze-btn" onclick="runSearch()">ANALYZE &rarr;</button>
-      </div>
+        <button type="submit" class="search-btn" id="analyze-btn">ANALYZE &rarr;</button>
+      </form>
 
       <div id="search-error" class="hero-error"></div>
 
@@ -533,72 +1114,105 @@
         <div class="progress-status" id="progress-status"></div>
       </div>
 
-      <div class="trust-line">
-        <div class="trust-item">EL PASO CAD PUBLIC DATA</div>
-        <div class="trust-dot">&middot;</div>
-        <div class="trust-item">NO ACCOUNT NEEDED</div>
-        <div class="trust-dot">&middot;</div>
-        <div class="trust-item">CITES &sect;41.43</div>
-        <div class="trust-dot">&middot;</div>
-        <div class="trust-item">RESIDENTIAL ONLY</div>
+      <div class="sample-cta-row">
+        <a href="/sample" target="_blank">View Sample Report &rarr;</a>
       </div>
-      <div style="margin-top:1.25rem;">
-        <a href="/sample" target="_blank" style="
-          display:inline-block;
-          color:rgba(255,255,255,0.75);
-          font-family:'Lato',sans-serif;
-          font-size:0.92rem;
-          font-weight:600;
-          text-decoration:none;
-          border:1px solid rgba(255,255,255,0.3);
-          border-radius:8px;
-          padding:0.7rem 1.6rem;
-          transition:border-color 0.2s, color 0.2s, background 0.2s;
-        " onmouseover="this.style.borderColor='rgba(255,255,255,0.6)';this.style.color='white';this.style.background='rgba(255,255,255,0.06)'"
-           onmouseout="this.style.borderColor='rgba(255,255,255,0.3)';this.style.color='rgba(255,255,255,0.75)';this.style.background='transparent'">
-          View Sample Report &rarr;
-        </a>
-      </div>
+
       <p class="hero-disclaimer">For El Paso residential properties only. Not for commercial properties or homes assessed over $5M.</p>
     </div>
   </section>
 
-  <section class="section">
-    <div class="section-eyebrow">Why ValuCheck</div>
-    <h2 class="section-h2">Most protests fail.<br>Here's how to build a stronger case.</h2>
-    <p class="section-sub">Most homeowners bring one or two Zillow listings and lose. EPCAD appraisers know exactly how to dismiss weak evidence. ValuCheck builds a three-tier legal case using the same data EPCAD uses — so their own numbers argue against them.</p>
-    <div class="compare-table">
-      <div class="col-head diy">Doing It Yourself</div>
-      <div class="col-head vc">ValuCheck</div>
-      <div class="row-diy">1-2 Zillow listings</div><div class="row-vc">6+ adjusted closed sales</div>
-      <div class="row-diy">No legal citations</div><div class="row-vc">&sect;41.43 cited on every page</div>
-      <div class="row-diy">Generic printout</div><div class="row-vc">ARB-formatted comp grid</div>
-      <div class="row-diy">Guess at your value</div><div class="row-vc">Median-based legal standard</div>
-      <div class="row-diy">No equal &amp; uniform analysis</div><div class="row-vc">EPCAD's own data vs. them</div>
-      <div class="row-diy">Hope for the best</div><div class="row-vc gt">3-minute ARB hearing script</div>
-      <div class="row-diy">No protest strength score (Chuco &#10007; &middot; O'Connor &#10007;)</div><div class="row-vc gt">Protest Strength Score 1&ndash;10 &#10003;</div>
+  <!-- ============ HOW IT WORKS (moved up) ============ -->
+  <section class="how-it-works">
+    <div class="how-inner">
+      <div class="section-eyebrow">How It Works</div>
+      <h2 class="section-h2">Three steps. One protest packet.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Enter Your Address</h3>
+          <p>We look up your property in EPCAD&rsquo;s public appraisal roll instantly. No account, no login.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>We Find the Evidence</h3>
+          <p>Three tiers: closed sales, active listings, and neighbors assessed lower than you.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Download Your Packet</h3>
+          <p>7-page, print-ready protest packet with comp grids, adjustments, cover letter, and ARB hearing script.</p>
+        </div>
+      </div>
     </div>
-    <p class="disclaimer-note">Results vary based on your property and neighborhood data available in EPCAD public records.</p>
   </section>
 
+  <!-- ============ WHY VALUCHECK ============ -->
+  <section class="why-section">
+    <div class="why-inner">
+      <div class="section-eyebrow">Why ValuCheck</div>
+      <h2 class="section-h2">Most protests fail.<br>Here&rsquo;s how to build a stronger case.</h2>
+      <div class="compare-header">What you bring vs. what ValuCheck builds</div>
+      <div class="compare-table">
+        <div class="col-head diy">Doing It Yourself</div>
+        <div class="col-head vc">ValuCheck</div>
+        <div class="row-diy">1&ndash;2 Zillow listings</div><div class="row-vc">6+ adjusted closed sales</div>
+        <div class="row-diy">No legal citations</div><div class="row-vc">&sect;41.43 cited on every page</div>
+        <div class="row-diy">Generic printout</div><div class="row-vc">ARB-formatted comp grid</div>
+        <div class="row-diy">Guess at your value</div><div class="row-vc">Median-based legal standard</div>
+        <div class="row-diy">No equal &amp; uniform analysis</div><div class="row-vc">EPCAD&rsquo;s own data vs. them</div>
+        <div class="row-diy">Hope for the best</div><div class="row-vc gt">3-minute ARB hearing script</div>
+        <div class="row-diy">No protest strength score</div><div class="row-vc gt">Protest Strength Score 1&ndash;10 &#10003;</div>
+      </div>
+      <p class="why-disclaimer">Results vary based on your property and neighborhood data available in EPCAD public records.</p>
+    </div>
+  </section>
+
+  <!-- ============ STATS BAR (moved below the fold) ============ -->
   <div class="stats-bar">
     <div class="stats-inner">
+      <div><div class="stat-num">85%</div><div class="stat-label">Increase in El Paso<br>home values since 2020</div></div>
+      <div><div class="stat-num">74%</div><div class="stat-label">Of homeowners have<br>never protested</div></div>
       <div><div class="stat-num">238K</div><div class="stat-label">El Paso properties<br>in our database</div></div>
-      <div><div class="stat-num">3</div><div class="stat-label">Legal evidence tiers<br>in every report</div></div>
       <div><div class="stat-num">7</div><div class="stat-label">Pages in your<br>ARB protest packet</div></div>
-      <div><div class="stat-num">$0</div><div class="stat-label">To see your<br>potential savings</div></div>
     </div>
   </div>
 
-  <div class="calc-bg" id="calc-section">
+  <!-- ============ TIERS ============ -->
+  <section class="tiers-section">
+    <div class="tiers-inner">
+      <div class="section-eyebrow">Evidence System</div>
+      <h2 class="section-h2">Three tiers. One strong case.</h2>
+      <div class="tier-cards">
+        <div class="tier-card">
+          <span class="tier-badge">Tier 1 &middot; Strongest</span>
+          <h3>Closed Sales</h3>
+          <p>Recent transactions from EPCAD deed records. What buyers actually paid for homes like yours.</p>
+        </div>
+        <div class="tier-card">
+          <span class="tier-badge">Tier 2 &middot; Supporting</span>
+          <h3>Active Listings</h3>
+          <p>Current asking prices on comparable homes. No rational buyer pays above today&rsquo;s asking price.</p>
+        </div>
+        <div class="tier-card">
+          <span class="tier-badge">Tier 3 &middot; Legal Right</span>
+          <h3>Equal &amp; Uniform</h3>
+          <p>EPCAD&rsquo;s own data used against them. Texas law requires similar homes be taxed similarly. &sect;41.43(b)(3).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SAVINGS CALCULATOR ============ -->
+  <section class="calc-section" id="calc-section">
     <div class="calc-inner">
-      <div class="calc-eyebrow">Savings Calculator</div>
-      <h2 class="calc-h2">See how much you could save.</h2>
-      <p class="calc-sub">Enter your EPCAD appraised value. We'll estimate your savings based on the median El Paso protest reduction of 18.6%.</p>
+      <div class="section-eyebrow">Savings Calculator</div>
+      <h2 class="section-h2">See how much you could save.</h2>
+      <p class="calc-prompt">Type your EPCAD value to see your estimated savings.</p>
       <div class="calc-input-wrap">
         <label for="calc-value">Current EPCAD Appraised Value</label>
         <span class="calc-dollar">$</span>
-        <input type="text" id="calc-value" inputmode="numeric" placeholder="350,000" oninput="updateCalc()" />
+        <input type="text" id="calc-value" inputmode="numeric" placeholder="$250,000" oninput="updateCalc()" />
       </div>
       <table class="calc-table" id="calc-results">
         <tr>
@@ -608,64 +1222,73 @@
         </tr>
         <tr>
           <td>Appraised Value</td>
-          <td id="c-before-val">—</td>
-          <td id="c-after-val">—</td>
+          <td id="c-before-val">&mdash;</td>
+          <td id="c-after-val">&mdash;</td>
         </tr>
         <tr>
           <td>Annual Tax (2.7% rate)</td>
-          <td id="c-before-tax">—</td>
-          <td id="c-after-tax">—</td>
+          <td id="c-before-tax">&mdash;</td>
+          <td id="c-after-tax">&mdash;</td>
         </tr>
         <tr>
           <td>Monthly Cost</td>
-          <td id="c-before-mo">—</td>
-          <td id="c-after-mo">—</td>
+          <td id="c-before-mo">&mdash;</td>
+          <td id="c-after-mo">&mdash;</td>
         </tr>
         <tr class="calc-savings-row">
           <td>Annual Savings</td>
           <td></td>
-          <td id="c-savings">—</td>
+          <td id="c-savings">&mdash;</td>
         </tr>
       </table>
       <div class="calc-note">Based on median 18.6% reduction &middot; 2.7% combined El Paso tax rate &middot; Actual results vary by property</div>
     </div>
-  </div>
-
-  <section class="section">
-    <div class="section-eyebrow">How It Works</div>
-    <h2 class="section-h2">Three steps. One protest packet.</h2>
-    <div class="steps">
-      <div class="step"><div class="step-num">STEP 01</div><h3>Enter Your Address</h3><p>We look up your property in EPCAD's public appraisal roll instantly. No account, no login.</p></div>
-      <div class="step"><div class="step-num">STEP 02</div><h3>We Find the Evidence</h3><p>Three tiers: closed sales, active listings, and neighbors assessed lower than you.</p></div>
-      <div class="step"><div class="step-num">STEP 03</div><h3>Download Your Packet</h3><p>7-page, print-ready protest packet with comp grids, adjustments, cover letter &amp; ARB hearing script.</p></div>
-    </div>
   </section>
 
-  <div class="tiers-bg">
-    <div class="tiers-inner">
-      <div class="section-eyebrow" style="color:var(--gold)">Evidence System</div>
-      <h2 class="section-h2" style="color:white;margin-bottom:0">Three tiers. One strong case.</h2>
-      <div class="tier-cards">
-        <div class="tier-card"><span class="tier-badge">Tier 1 &middot; Strongest</span><h3>Closed Sales</h3><p>Recent transactions from EPCAD deed records. What buyers actually paid for homes like yours.</p></div>
-        <div class="tier-card"><span class="tier-badge">Tier 2 &middot; Supporting</span><h3>Active Listings</h3><p>Current asking prices on comparable homes. No rational buyer pays above today's asking price.</p></div>
-        <div class="tier-card"><span class="tier-badge">Tier 3 &middot; Legal Right</span><h3>Equal &amp; Uniform</h3><p>EPCAD's own data used against them. Texas law requires similar homes be taxed similarly. &sect;41.43(b)(3).</p></div>
+  <!-- ============ FAQ ============ -->
+  <section class="faq-section">
+    <div class="faq-inner">
+      <div class="section-eyebrow">Common Questions</div>
+      <h2 class="section-h2">What homeowners ask first.</h2>
+      <div class="faq-item">
+        <div class="faq-q">What is an ARB hearing?</div>
+        <div class="faq-a">ARB stands for Appraisal Review Board. It&rsquo;s a panel of local citizens &mdash; not EPCAD employees &mdash; who hear your case. You present your evidence, they vote. Most cases settle before the hearing.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is this legit?</div>
+        <div class="faq-a">Yes. ValuCheck uses only official EPCAD public records and Texas Tax Code &sect;41.43. Everything in your report is publicly verifiable.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How close are the comparable properties to my home?</div>
+        <div class="faq-a">ValuCheck prioritizes comps within 0.5 miles of your property. Distance is printed on every comp in your report so the ARB panel can see exactly how close each one is.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can EPCAD raise my value if I protest?</div>
+        <div class="faq-a">No. Under Texas Tax Code &sect;41.43, the ARB cannot increase your value during a protest. The worst outcome is your value stays the same.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What if I lose at the ARB hearing?</div>
+        <div class="faq-a">You can appeal to binding arbitration (properties under $5M) or district court within 60 days of the ARB order.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Do I need a lawyer?</div>
+        <div class="faq-a">Not for the ARB hearing. Texas law allows any property owner to represent themselves. ValuCheck gives you everything you need.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">When is the deadline?</div>
+        <div class="faq-a">May 15, 2026 &mdash; or 30 days from your notice date, whichever is later. File Form 50-132 at epcad.org.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What data does ValuCheck use?</div>
+        <div class="faq-a">Official EPCAD public appraisal records, deed data, and current Redfin active listings. All public domain, updated regularly.</div>
       </div>
     </div>
-  </div>
-
-  <section class="faq-s">
-    <h2>Common questions.</h2>
-    <div class="faq-item"><div class="faq-q">How close are the comparable properties to my home?</div><div class="faq-a">ValuCheck prioritizes comps within 0.5 miles of your property. Distance is printed on every comp in your report so the ARB panel can see exactly how close each one is.</div></div>
-    <div class="faq-item"><div class="faq-q">Can EPCAD raise my value if I protest?</div><div class="faq-a">No. Under Texas Tax Code &sect;41.43, the ARB cannot increase your value during a protest. The worst outcome is your value stays the same.</div></div>
-    <div class="faq-item"><div class="faq-q">What if I lose at the ARB hearing?</div><div class="faq-a">You can appeal to binding arbitration (properties under $5M) or district court within 60 days of the ARB order.</div></div>
-    <div class="faq-item"><div class="faq-q">Do I need a lawyer?</div><div class="faq-a">Not for the ARB hearing. Texas law allows any property owner to represent themselves. ValuCheck gives you everything you need.</div></div>
-    <div class="faq-item"><div class="faq-q">When is the deadline?</div><div class="faq-a">May 15, 2026 — or 30 days from your notice date, whichever is later. File Form 50-132 at epcad.org.</div></div>
-    <div class="faq-item"><div class="faq-q">What data does ValuCheck use?</div><div class="faq-a">Official EPCAD public appraisal records, deed data, and current Redfin active listings. All public domain, updated regularly.</div></div>
   </section>
 
-  <div class="email-bg">
+  <!-- ============ EMAIL CAPTURE ============ -->
+  <div class="email-section">
     <h2>Get your 2027 report early.</h2>
-    <p>Enter your email and we'll notify you the moment 2027 EPCAD values are released.</p>
+    <p>Enter your email and we&rsquo;ll notify you the moment 2027 EPCAD values are released.</p>
     <div class="email-row">
       <input type="email" id="notify-email" placeholder="your@email.com" />
       <button onclick="alert('Thanks! We\'ll notify you when 2027 data is available.')">Notify Me</button>
@@ -673,6 +1296,9 @@
   </div>
 
   <footer>
+    <div class="footer-contact">
+      Questions? Email us at <a href="mailto:hello@getvalucheck.com">hello@getvalucheck.com</a>
+    </div>
     <strong>ValuCheck</strong> &middot; El Paso Property Tax Protest Tool<br>
     Data: EPCAD 2026 Appraisal Roll (public domain) &middot; Redfin active listings<br>
     Informational purposes only &middot; Not legal advice &middot; Results vary &middot; Not affiliated with EPCAD<br>
@@ -699,12 +1325,12 @@
     <div class="value-compare">
       <div class="val-box">
         <div class="val-num" id="r-epcad-val"></div>
-        <div class="val-label">EPCAD VALUE</div>
+        <div class="val-label">EPCAD Value</div>
       </div>
       <div class="val-arrow">&rarr;</div>
       <div class="val-box protest">
         <div class="val-num" id="r-protest-val"></div>
-        <div class="val-label">PROTEST TO</div>
+        <div class="val-label">Protest To</div>
       </div>
     </div>
 
@@ -723,12 +1349,13 @@
 
     <div class="strength-panel" id="strength-panel" style="display:none;">
       <div class="strength-hdr">Protest Strength</div>
-      <div class="strength-num"><span id="r-score-num">—</span><small> / 10</small></div>
-      <div class="strength-grade">Grade: <strong id="r-score-grade">—</strong></div>
+      <div class="strength-num"><span id="r-score-num">&mdash;</span><small> / 10</small></div>
+      <div class="strength-grade">Grade: <strong id="r-score-grade">&mdash;</strong></div>
+      <div class="strength-plain" id="r-score-plain"></div>
       <div class="strength-bar-wrap">
         <div class="strength-bar-fill" id="r-score-bar" style="width:0%;"></div>
       </div>
-      <div class="strength-bar-label" id="r-score-label">—</div>
+      <div class="strength-bar-label" id="r-score-label">&mdash;</div>
       <div class="strength-bullets" id="r-score-bullets"></div>
     </div>
 
@@ -786,30 +1413,30 @@
       <div class="preview-fade"></div>
     </div>
 
-    <div style="text-align:center;margin-bottom:0.5rem;">
+    <div class="sample-link-wrap">
       <a href="/sample" target="_blank" class="sample-link">View Sample Report &rarr;</a>
     </div>
 
     <div class="cta-block">
       <div class="cta-top">Your complete protest packet is ready.</div>
       <div class="cta-score-hook" id="cta-score-hook" style="display:none;">
-        Your protest strength is <strong id="cta-score-text">—</strong>.
+        Your protest strength is <strong id="cta-score-text">&mdash;</strong>.
         See the full evidence packet.
       </div>
       <div class="cta-headline">Get the full 7-page ARB packet<br>and fight your tax bill today.</div>
       <div class="cta-sub">Comp grids &middot; Adjustments &middot; Cover letter &middot; ARB hearing script &middot; Statutory citations</div>
 
       <button class="cta-main" onclick="showPaywall('download')">
-        Download My Protest Packet — $29.99
+        DOWNLOAD MY PACKET &mdash; $29.99
       </button>
       <div class="cta-price-note">Instant PDF download &middot; One-time payment &middot; No subscription</div>
 
       <div class="cta-divider"><span>prefer email?</span></div>
 
       <button class="cta-free" onclick="showPaywall('email')">
-        Email My Report Instead — $29.99
+        Email My Report Instead &mdash; $29.99
       </button>
-      <div style="font-size:0.75rem;color:var(--muted);margin-top:-0.75rem;margin-bottom:1.25rem;text-align:center;">Great for mobile &middot; Arrives in your inbox in minutes</div>
+      <div class="cta-free-note">Great for mobile &middot; Arrives in your inbox in minutes</div>
 
       <div class="cta-trust">
         <div class="cta-trust-item">Secure payment</div>
@@ -818,33 +1445,9 @@
       </div>
     </div>
 
-    <div style="text-align:center;margin-top:1.5rem;">
-      <button onclick="betaDownload()" style="
-        background:transparent;
-        color:rgba(255,255,255,0.55);
-        border:1px solid rgba(255,255,255,0.15);
-        padding:0.8rem 2rem;
-        border-radius:10px;
-        font-family:'Lato',sans-serif;
-        font-size:0.9rem;
-        font-weight:600;
-        cursor:pointer;
-        transition:border-color 0.2s, color 0.2s;
-        width:100%;
-        max-width:400px;
-      " onmouseover="this.style.borderColor='rgba(255,255,255,0.35)';this.style.color='rgba(255,255,255,0.8)'"
-         onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.55)'">
-        Beta Access &mdash; Download Free
-      </button>
-      <div style="font-size:0.68rem;color:rgba(255,255,255,0.25);margin-top:0.5rem;">
-        Limited time &middot; No payment required
-      </div>
+    <div class="secondary-sample-cta">
+      <a href="/sample" target="_blank">Try a Sample Report &rarr;</a>
     </div>
-
-  </div>
-  <div class="scroll-hint" id="scroll-hint">
-    <div class="scroll-hint-arrow">&darr;</div>
-    <div class="scroll-hint-text">Scroll to see your results</div>
   </div>
 </div>
 
@@ -861,8 +1464,11 @@
         <div class="modal-summary-left"><strong id="modal-addr"></strong>7-page ARB-ready protest packet</div>
         <div class="modal-price">$29.99</div>
       </div>
-      <div class="modal-field"><label>Email Address <span id="email-note" style="color:var(--gold);font-size:0.65rem;letter-spacing:0;text-transform:none;font-weight:400;"></span></label><input type="email" id="modal-email" placeholder="you@email.com" /></div>
-      <button class="pay-btn" id="stripe-pay-btn" onclick="processPayment()" style="background:var(--gold);color:var(--navy);margin-top:0.75rem;">Pay $29.99 with Stripe &rarr;</button>
+      <div class="modal-field">
+        <label>Email Address <span id="email-note" style="color:var(--gold);font-size:13px;letter-spacing:0;text-transform:none;font-weight:400;"></span></label>
+        <input type="email" id="modal-email" placeholder="you@email.com" />
+      </div>
+      <button class="pay-btn" id="stripe-pay-btn" onclick="processPayment()">PAY $29.99 WITH STRIPE &rarr;</button>
       <div class="modal-trust" id="modal-trust-text">Secure Stripe checkout &middot; Instant download &middot; Results may vary</div>
     </div>
   </div>
@@ -871,19 +1477,17 @@
 <script>
   // Deadline countdown
   (function() {
-    const deadline = new Date('2026-05-15');
-    const now = new Date(); now.setHours(0,0,0,0);
-    const days = Math.max(0, Math.ceil((deadline - now) / 86400000));
+    var deadline = new Date('2026-05-15');
+    var now = new Date(); now.setHours(0,0,0,0);
+    var days = Math.max(0, Math.ceil((deadline - now) / 86400000));
     document.getElementById('days-left').textContent = days + ' days';
   })();
 
-  // State
-  let currentResult = null;
-  let deliveryMode = 'download';
-  let progressInterval = null;
+  var currentResult = null;
+  var deliveryMode = 'download';
+  var progressInterval = null;
 
-  // Progress indicator
-  const progressMessages = [
+  var progressMessages = [
     'Searching 238,000 El Paso properties...',
     'Finding comparable sales nearby...',
     'Running Equal & Uniform analysis...',
@@ -891,9 +1495,9 @@
   ];
 
   function showProgress() {
-    const el = document.getElementById('search-progress');
-    const statusEl = document.getElementById('progress-status');
-    let idx = 0;
+    var el = document.getElementById('search-progress');
+    var statusEl = document.getElementById('progress-status');
+    var idx = 0;
     statusEl.textContent = progressMessages[0];
     el.classList.add('active');
     progressInterval = setInterval(function() {
@@ -911,12 +1515,11 @@
     if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
   }
 
-  // Run analysis via Flask API
   async function runSearch() {
-    const addr = document.getElementById('address-input').value.trim();
-    const zip = document.getElementById('zip-input').value.trim();
-    const errEl = document.getElementById('search-error');
-    const btn = document.getElementById('analyze-btn');
+    var addr = document.getElementById('address-input').value.trim();
+    var zip = document.getElementById('zip-input').value.trim();
+    var errEl = document.getElementById('search-error');
+    var btn = document.getElementById('analyze-btn');
 
     errEl.style.display = 'none';
     hideProgress();
@@ -927,13 +1530,12 @@
     showProgress();
 
     try {
-      const resp = await fetch('/analyze', {
+      var resp = await fetch('/analyze', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({address: addr, zip: zip || null}),
       });
-      const data = await resp.json();
-
+      var data = await resp.json();
       hideProgress();
 
       if (!resp.ok) {
@@ -950,24 +1552,22 @@
       errEl.style.display = 'block';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'ANALYZE \u2192';
+      btn.textContent = 'ANALYZE →';
     }
   }
 
-  // Populate and show result view
   function showResult(d) {
-    const s = d.subject;
-    const r = d.recommendation;
+    var s = d.subject;
+    var r = d.recommendation;
 
     document.getElementById('result-addr').textContent =
       s.address + ', ' + s.city + ' ' + s.zip;
     document.getElementById('result-acct').textContent =
-      'EPCAD Account ' + s.account + ' \u00b7 2026 Tax Year';
+      'EPCAD Account ' + s.account + ' · 2026 Tax Year';
     document.getElementById('r-epcad-val').textContent = s.appraised_fmt;
     document.getElementById('r-protest-val').textContent = r.recommended_fmt;
     document.getElementById('r-savings').textContent = r.savings_fmt;
 
-    // --- Year-over-year value change alert ---
     var yoyBanner = document.getElementById('yoy-banner');
     var yoyText = document.getElementById('yoy-text');
     yoyBanner.classList.remove('visible', 'yoy-gold', 'yoy-red');
@@ -978,34 +1578,32 @@
       } else {
         yoyBanner.classList.add('yoy-gold', 'visible');
       }
-      yoyText.innerHTML = '<span class="alert-icon">\u26A0\uFE0F</span> ' +
+      yoyText.innerHTML = '<span class="alert-icon">⚠️</span> ' +
         '<strong>Your value jumped ' + pctRound + '% this year.</strong> ' +
-        'Under \u00A741.43(a-3), EPCAD must prove this increase by clear and convincing evidence. ' +
+        'Under §41.43(a-3), EPCAD must prove this increase by clear and convincing evidence. ' +
         'You have a strong case.';
     }
 
-    // --- Homestead exemption check ---
     var hsBanner = document.getElementById('hs-banner');
     var hsText = document.getElementById('hs-text');
     hsBanner.classList.remove('visible');
     if (!s.has_homestead && s.is_residential) {
       hsBanner.classList.add('homestead-blue', 'visible');
-      hsText.innerHTML = '<span class="alert-icon">\uD83D\uDCA1</span> ' +
+      hsText.innerHTML = '<span class="alert-icon">💡</span> ' +
         '<strong>No homestead exemption found on this property.</strong> ' +
-        'Filing a homestead exemption could save you up to $140,000 in taxable value \u2014 ' +
+        'Filing a homestead exemption could save you up to $140,000 in taxable value — ' +
         'file at <a href="https://epcad.org" target="_blank">epcad.org</a> before April 30, 2026.';
     }
 
     document.getElementById('r-epcad-psf').textContent = 'EPCAD: ' + s.psf_fmt + '/sqft';
     document.getElementById('r-market-psf').textContent = 'Market: ' + r.tier3_median_psf_fmt + '/sqft';
-    const pctEl = document.getElementById('r-pct-over');
+    var pctEl = document.getElementById('r-pct-over');
     if (r.pct_over && r.pct_over > 0) {
       pctEl.textContent = Math.round(r.pct_over) + '% overassessed';
     } else {
       pctEl.textContent = '';
     }
 
-    // --- Protest Strength Score panel ---
     var scorePanel = document.getElementById('strength-panel');
     var ctaHook = document.getElementById('cta-score-hook');
     if (d.score && typeof d.score.score === 'number') {
@@ -1015,6 +1613,15 @@
       document.getElementById('r-score-bar').style.width =
         (Math.max(0, Math.min(100, sc.score * 10))) + '%';
       document.getElementById('r-score-label').textContent = sc.label;
+
+      var totalComps = (d.counts.tier1 || 0) + (d.counts.tier2 || 0) + (d.counts.tier3 || 0);
+      var caseStrength = sc.score >= 7 ? 'strong'
+                       : sc.score >= 4 ? 'moderate'
+                       : 'weak';
+      document.getElementById('r-score-plain').innerHTML =
+        'This means your case is <strong>' + caseStrength + '</strong> based on <strong>' +
+        totalComps + '</strong> comparable propert' + (totalComps === 1 ? 'y' : 'ies') + '.';
+
       var bulletsEl = document.getElementById('r-score-bullets');
       bulletsEl.innerHTML = '';
       (sc.bullets || []).forEach(function(b) {
@@ -1033,7 +1640,6 @@
       ctaHook.style.display = 'none';
     }
 
-    // --- Tax Bill Impact table ---
     var taxRate = 0.027;
     var appraised = s.appraised || 0;
     var protestVal = r.recommended || 0;
@@ -1059,15 +1665,14 @@
     document.getElementById('r-t3-count').textContent = d.counts.tier3 + ' neighbors assessed lower';
     document.getElementById('r-t3-val').textContent = r.tier3_fmt;
 
-    // Preview rows (blurred)
-    const previewEl = document.getElementById('r-preview-rows');
+    var previewEl = document.getElementById('r-preview-rows');
     previewEl.innerHTML = '';
-    const comps = d.tier1_comps.concat(d.tier3_comps).slice(0, 5);
+    var comps = d.tier1_comps.concat(d.tier3_comps).slice(0, 5);
     comps.forEach(function(c) {
-      const row = document.createElement('div');
+      var row = document.createElement('div');
       row.className = 'preview-row';
       row.innerHTML = '<span class="pr-addr">' + c.address + '</span>' +
-        '<span class="pr-val">' + (c.psf || c.psf || '') + ' &middot; ' + (c.sale_price || c.appraised || '') + '</span>';
+        '<span class="pr-val">' + (c.psf || '') + ' &middot; ' + (c.sale_price || c.appraised || '') + '</span>';
       previewEl.appendChild(row);
     });
 
@@ -1077,18 +1682,10 @@
     document.getElementById('result-view').style.display = 'block';
     window.scrollTo({top: 0, behavior: 'smooth'});
 
-    // Pre-fill savings calculator with actual EPCAD value
     if (s.appraised && s.appraised > 0) {
       var calcInput = document.getElementById('calc-value');
       calcInput.value = Math.round(s.appraised).toLocaleString('en-US');
       updateCalc();
-    }
-
-    // Show scroll hint, auto-remove after fade animation
-    var hint = document.getElementById('scroll-hint');
-    if (hint) {
-      hint.classList.add('visible');
-      setTimeout(function() { hint.classList.remove('visible'); }, 4200);
     }
   }
 
@@ -1100,14 +1697,12 @@
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
-  // Enter key triggers search
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && document.getElementById('search-view').style.display !== 'none') {
       runSearch();
     }
   });
 
-  // Payment modal
   function showPaywall(mode) {
     deliveryMode = mode || 'download';
     var title = document.getElementById('modal-title');
@@ -1116,7 +1711,7 @@
     if (deliveryMode === 'email') {
       title.textContent = 'Email My Protest Packet';
       subtitle.textContent = 'PDF delivered to your inbox after payment';
-      emailNote.textContent = '\u2190 We\'ll send your report here';
+      emailNote.textContent = '← We\'ll send your report here';
     } else {
       title.textContent = 'Get Your Protest Packet';
       subtitle.textContent = 'Instant PDF download after payment';
@@ -1131,18 +1726,13 @@
     document.body.style.overflow = '';
   }
 
-  function betaDownload() {
-    if (!currentResult || !currentResult.pdf_id) return;
-    window.location.href = '/report/' + currentResult.pdf_id;
-  }
-
   async function processPayment() {
     if (!currentResult) return;
     var email = document.getElementById('modal-email').value;
     var btn = document.getElementById('stripe-pay-btn');
 
     btn.disabled = true;
-    btn.textContent = 'Redirecting to Stripe...';
+    btn.textContent = 'REDIRECTING TO STRIPE...';
 
     try {
       var resp = await fetch('/checkout', {
@@ -1166,7 +1756,7 @@
       alert('Network error. Please try again.');
     }
     btn.disabled = false;
-    btn.textContent = 'Pay $29.99 with Stripe \u2192';
+    btn.textContent = 'PAY $29.99 WITH STRIPE →';
   }
 
   document.getElementById('modal-overlay').addEventListener('click', function(e) {
@@ -1186,7 +1776,6 @@
   function updateCalc() {
     var input = document.getElementById('calc-value');
     var raw = input.value.replace(/[^0-9]/g, '');
-    // Format with commas as they type
     if (raw) {
       input.value = parseInt(raw).toLocaleString('en-US');
     }
@@ -1195,7 +1784,7 @@
     if (val <= 0) {
       document.getElementById('c-before-val').textContent = '—';
       document.getElementById('c-after-val').textContent = '—';
-      document.getElementById('c-before-tax').textContent = '���';
+      document.getElementById('c-before-tax').textContent = '—';
       document.getElementById('c-after-tax').textContent = '—';
       document.getElementById('c-before-mo').textContent = '—';
       document.getElementById('c-after-mo').textContent = '—';
@@ -1203,8 +1792,8 @@
       return;
     }
 
-    var reduction = 0.186;  // 18.6% median El Paso reduction
-    var taxRate = 0.027;    // 2.7% combined rate
+    var reduction = 0.186;
+    var taxRate = 0.027;
     var afterVal = val * (1 - reduction);
     var beforeTax = val * taxRate;
     var afterTax = afterVal * taxRate;
@@ -1218,6 +1807,13 @@
     document.getElementById('c-after-mo').textContent = fmtDollar(afterTax / 12);
     document.getElementById('c-savings').textContent = fmtDollar(savings) + '/yr';
   }
+
+  // Pre-fill calculator with El Paso median ($253,000) on first load
+  (function prefillCalc() {
+    var input = document.getElementById('calc-value');
+    input.value = (253000).toLocaleString('en-US');
+    updateCalc();
+  })();
 </script>
 </body>
 </html>
