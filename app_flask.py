@@ -394,9 +394,14 @@ def serve_report(pdf_id):
             user_agent=request.headers.get("User-Agent", "")[:500],
         )
 
-    return send_file(pdf_path, mimetype="application/pdf",
-                     as_attachment=True,
-                     download_name=f"valucheck_protest_{pdf_id}.pdf")
+    response = send_file(pdf_path, mimetype="application/pdf",
+                         as_attachment=True,
+                         download_name=f"valucheck_protest_{pdf_id}.pdf")
+    # Never let browsers cache a generated PDF — a stale watermarked copy
+    # from before the watermark was removed should not be re-served.
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 
 if __name__ == "__main__":
