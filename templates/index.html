@@ -28,6 +28,26 @@
     font-style: normal !important;
   }
 
+  * { font-style: normal !important; }
+  .value-display, .score-num, .savings-num,
+  .epcad-val, .protest-val {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+  }
+
+  .beta-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1px solid rgba(10,35,66,0.25);
+    color: rgba(10,35,66,0.5);
+    font-size: 13px;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 12px;
+  }
+  .beta-btn:hover { border-color: var(--navy); color: var(--navy); }
+
   :root {
     --navy: #0B1F3A;
     --navy-mid: #142847;
@@ -1348,12 +1368,12 @@
 
     <div class="value-compare">
       <div class="val-box">
-        <div class="val-num" id="r-epcad-val" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
+        <div class="val-num epcad-val" id="r-epcad-val" style="font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;"></div>
         <div class="val-label">EPCAD Value</div>
       </div>
       <div class="val-arrow">&rarr;</div>
       <div class="val-box protest">
-        <div class="val-num" id="r-protest-val" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
+        <div class="val-num protest-val" id="r-protest-val" style="font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;"></div>
         <div class="val-label">Protest To</div>
       </div>
     </div>
@@ -1361,7 +1381,7 @@
     <div class="savings-block">
       <div>
         <div class="savings-label">Potential Savings Found</div>
-        <div class="savings-amount" id="r-savings" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"></div>
+        <div class="savings-amount savings-num" id="r-savings" style="font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;"></div>
         <div class="savings-sub">Based on 3-tier evidence &middot; Results may vary</div>
       </div>
       <div class="savings-right">
@@ -1373,7 +1393,7 @@
 
     <div class="strength-panel" id="strength-panel" style="display:none;">
       <div class="strength-hdr">Protest Strength</div>
-      <div class="strength-num" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;"><span id="r-score-num" style="font-family: system-ui, sans-serif; font-variant-numeric: tabular-nums;">&mdash;</span><small> / 10</small></div>
+      <div class="strength-num" style="font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;"><span class="score-num" id="r-score-num" style="font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;">&mdash;</span><small> / 10</small></div>
       <div class="strength-grade">Grade: <strong id="r-score-grade">&mdash;</strong></div>
       <div class="strength-plain" id="r-score-plain"></div>
       <div class="strength-bar-wrap">
@@ -1437,10 +1457,6 @@
       <div class="preview-fade"></div>
     </div>
 
-    <div class="sample-link-wrap">
-      <a href="/sample" target="_blank" class="sample-link">View Sample Report &rarr;</a>
-    </div>
-
     <div class="cta-block">
       <div class="cta-top">Your complete protest packet is ready.</div>
       <div class="cta-score-hook" id="cta-score-hook" style="display:none;">
@@ -1469,8 +1485,8 @@
       </div>
     </div>
 
-    <div class="secondary-sample-cta">
-      <a href="/sample" target="_blank">Try a Sample Report &rarr;</a>
+    <div style="text-align:center;">
+      <a href="/sample" class="beta-btn">Try a Free Beta Report &rarr;</a>
     </div>
   </div>
 </div>
@@ -1580,6 +1596,19 @@
     }
   }
 
+  // Wrap a numeric value in a span with forced Arial styling.
+  // Uses textContent on the span so backend strings can never inject HTML.
+  var NUM_SPAN_STYLE = "font-family: 'Arial', Helvetica, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;";
+  function setNumeric(id, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    var span = document.createElement('span');
+    span.style.cssText = NUM_SPAN_STYLE;
+    span.textContent = value;
+    el.appendChild(span);
+  }
+
   function showResult(d) {
     var s = d.subject;
     var r = d.recommendation;
@@ -1588,9 +1617,9 @@
       s.address + ', ' + s.city + ' ' + s.zip;
     document.getElementById('result-acct').textContent =
       'EPCAD Account ' + s.account + ' · 2026 Tax Year';
-    document.getElementById('r-epcad-val').textContent = s.appraised_fmt;
-    document.getElementById('r-protest-val').textContent = r.recommended_fmt;
-    document.getElementById('r-savings').textContent = r.savings_fmt;
+    setNumeric('r-epcad-val',   s.appraised_fmt);
+    setNumeric('r-protest-val', r.recommended_fmt);
+    setNumeric('r-savings',     r.savings_fmt);
 
     var yoyBanner = document.getElementById('yoy-banner');
     var yoyText = document.getElementById('yoy-text');
@@ -1632,7 +1661,7 @@
     var ctaHook = document.getElementById('cta-score-hook');
     if (d.score && typeof d.score.score === 'number') {
       var sc = d.score;
-      document.getElementById('r-score-num').textContent = sc.score.toFixed(1);
+      setNumeric('r-score-num', sc.score.toFixed(1));
       document.getElementById('r-score-grade').textContent = sc.grade;
       document.getElementById('r-score-bar').style.width =
         (Math.max(0, Math.min(100, sc.score * 10))) + '%';
