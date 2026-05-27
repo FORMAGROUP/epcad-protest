@@ -1498,6 +1498,29 @@ def _page_hearing_script(subject, recommendation, tier1_comps, tier3_comps,
         f"for more than this unless EPCAD presents compelling evidence.",
         body))
 
+    # --- Hearing Prep upsell callout ---
+    elements.append(Spacer(1, 18))
+    callout_style = ParagraphStyle(
+        "_hpCallout", parent=body,
+        fontSize=10, leading=14, textColor=NAVY,
+        leftIndent=8, rightIndent=8)
+    callout_para = Paragraph(
+        "<b>Got your EPCAD evidence packet?</b> Visit "
+        "<b>getvalucheck.com/hearing-prep</b> to upload it and get a "
+        "personalized rebuttal script built from their own evidence.",
+        callout_style)
+    callout = Table([[callout_para]], colWidths=[6.2 * inch])
+    callout.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 1.5, GOLD),
+        ("LINEBEFORE", (0, 0), (0, -1), 4, GOLD),
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF8F0")),
+        ("TOPPADDING", (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+        ("LEFTPADDING", (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(callout)
+
     return elements
 
 
