@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 data/redfin_listings.csv
 data/redfin_last_updated.txt
+data/epcad.db
