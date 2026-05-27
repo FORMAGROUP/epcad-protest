@@ -1,5 +1,6 @@
 """ValuCheck Flask app — landing page + API for three-tier analysis."""
 
+import base64
 import json
 import os
 import sys
@@ -15,7 +16,8 @@ from flask import Flask, request, jsonify, send_file, render_template
 # Ensure src/ imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from comps import load_config, get_db, find_subject, tier1_closed_sales, tier3_equal_uniform
+from comps import (load_config, get_db, find_subject,
+                   tier3_equal_uniform, select_tier1_comps)
 from listings import fetch_and_store, find_tier2_comps
 from scorer import adjust_tier1, final_recommendation, calculate_protest_score
 from report import generate_pdf
@@ -130,8 +132,8 @@ def _run_analysis(address, zipcode, result_holder):
         appraised = subject["appraised_value"] or 0
         psf = appraised / sqft if sqft > 0 else 0
 
-        # Run tiers
-        t1 = tier1_closed_sales(conn, subject, config)
+        # Run tiers — prefer Redfin sold comps over EPCAD deeds when available.
+        t1, tier1_source = select_tier1_comps(conn, subject, config)
         t1 = adjust_tier1(subject, t1, config)
         t2 = find_tier2_comps(conn, subject, config)
         t3 = tier3_equal_uniform(conn, subject, config)
@@ -173,6 +175,10 @@ def _run_analysis(address, zipcode, result_holder):
                 "psf": f"${sp/la:,.0f}" if la > 0 else "-",
                 "distance": f"{dist:.2f} mi" if dist is not None else "-",
                 "adjusted": _fd(c.get("adjusted_value")),
+                "source": c.get("source_label")
+                          or ("Verified Market Sale"
+                              if c.get("_source") == "redfin_sold"
+                              else "EPCAD Deed Record"),
             })
 
         # Build tier 3 comp list for preview
@@ -263,6 +269,7 @@ def _run_analysis(address, zipcode, result_holder):
             },
             "score": score,
             "tier1_comps": t1_comps,
+            "tier1_source": tier1_source,
             "tier3_comps": t3_comps,
             "pdf_id": pdf_id,
         }
@@ -402,6 +409,241 @@ def serve_report(pdf_id):
     response.headers["Cache-Control"] = "no-store, max-age=0"
     response.headers["Pragma"] = "no-cache"
     return response
+
+
+HEARING_PREP_SYSTEM_PROMPT = """You are an expert Texas property tax protest strategist preparing a homeowner for their ARB hearing in El Paso County. The homeowner is about to walk into a hearing room with a 3-person Appraisal Review Board panel and an EPCAD staff appraiser sitting across from them.
+
+You will be given:
+- EPCAD's evidence packet (their comp grid, sales comparison analysis, equity grid, settlement offer if present, value defense)
+- The homeowner's ValuCheck report (closed sales, active listings, equal & uniform analysis)
+- Subject property address, EPCAD's proposed value, homeowner's requested value, hearing date, condition issues, purchase price + year, whether a licensed appraisal exists.
+
+Your job is to read EPCAD's packet adversarially, score the homeowner's odds, extract every argument EPCAD will use, then arm the homeowner with a tight 3-minute opening, attack points that dismantle EPCAD's comps using their own data, anticipated Q&A from the panel, process-stage questions across informal review / ARB hearing / post-hearing, and mistakes to avoid.
+
+Return ONLY valid JSON. No prose, no markdown, no commentary outside the JSON. Schema:
+
+{
+  "epcad_median": "string — median $/sqft from EPCAD's SALES comparison grid, formatted '$XXX/sqft'. 'Not stated' if absent.",
+  "epcad_equity_median": "string — median $/sqft from EPCAD's EQUITY grid (their equal-and-uniform comps), formatted '$XXX/sqft'. 'Not stated' if absent.",
+  "epcad_settlement_offer": "string — settlement / informal offer value if EPCAD has made one (e.g. '$268,400 informal offer'). 'None offered' if absent.",
+  "gap_summary": "string — one tight sentence quantifying the gap between EPCAD's value and the homeowner's requested value, e.g. '$48,200 gap (16.4% reduction requested)'.",
+  "confidence_score": {
+    "score": "integer 1-100 representing odds the requested value is achievable at hearing",
+    "grade": "single letter A | B | C | D (A = 85+, B = 70-84, C = 55-69, D = under 55)",
+    "headline": "one short sentence summarizing the case strength (≤14 words)"
+  },
+  "confidence_factors": [
+    {
+      "factor": "short label of the factor (e.g. 'Assessment 22% above neighborhood median')",
+      "impact": "positive | negative | neutral",
+      "detail": "1-2 sentence explanation of how this moves the score"
+    }
+  ],
+  "epcad_arguments": [
+    {
+      "label": "short title (≤8 words) of the argument EPCAD will make",
+      "detail": "2-3 sentences explaining the argument and the evidence EPCAD is using",
+      "strength": "weak | moderate | strong"
+    }
+  ],
+  "rebuttal_script": "string — word-for-word 3-minute opening statement (~450 words) the homeowner reads aloud. First person. Plain spoken. Specific dollar amounts and addresses pulled from the documents. Cites Tex. Tax Code §41.43(b)(3) and §23.01 where appropriate. Ends with the exact requested value.",
+  "attack_points": [
+    {
+      "label": "short title of the attack",
+      "point": "2-3 sentences of the actual argument and how to deliver it at the podium",
+      "cite": "statute, page reference, or EPCAD comp address being attacked"
+    }
+  ],
+  "anticipated_qna": [
+    {
+      "q": "exact question the panel or EPCAD appraiser will likely ask",
+      "a": "exactly what to say back — 1-3 sentences, plain language, using the homeowner's actual facts"
+    }
+  ],
+  "process_questions": [
+    {
+      "stage": "informal | arb_hearing | post_hearing",
+      "q": "question the homeowner is likely to face at this stage",
+      "a": "exactly what to say or do — 1-3 sentences"
+    }
+  ],
+  "mistakes_to_avoid": "string — newline-separated bullet points, each starting with '• '. Specific to THIS case, not generic. 5-8 bullets."
+}
+
+Scoring rules for confidence_score:
+- Start at 50.
+- +10 to +20 if subject is materially above the median of EPCAD's own equity grid.
+- +5 to +15 if EPCAD's CMA / sales-comparison value differs from the notice value (proves their own data doesn't support the notice).
+- +5 to +10 if a licensed appraisal exists (triggers the clear-and-convincing standard, Tex. Tax Code §41.43(a-1)).
+- +3 to +8 if owner reported condition issues that EPCAD did not adjust for.
+- +5 to +10 if a settlement offer already exists at or near the requested value.
+- -5 to -15 if YOY increase is modest (under ~5%) or in line with the market.
+- -5 to -10 if EPCAD's comps are very close in distance and characteristics to the subject.
+- -5 if requested value is unrealistically aggressive vs the evidence.
+Cap 1-100. Map to grade: A ≥85, B 70-84, C 55-69, D <55.
+
+For anticipated_qna, ALWAYS include the standard ARB battery (use the homeowner's actual facts in the answer):
+- "When did you buy this house and what did you pay?"
+- "Do you have a recent licensed appraisal?"
+- "Are you aware of any recent sales in your neighborhood?"
+- "What's wrong with EPCAD's comparables?"
+- "What condition issues does your property have that aren't reflected in EPCAD's value?"
+Plus 3-5 case-specific questions derived from the actual evidence.
+
+For process_questions, cover all three stages — at least 2 questions per stage:
+- informal: questions the appraiser asks during the informal review / settlement conference
+- arb_hearing: questions the 3-person panel asks at the formal hearing
+- post_hearing: questions about ARB order, binding arbitration ($500-$1,500 deposit), SOAH appeal, or district court appeal
+
+Produce 3-5 epcad_arguments, 4-6 confidence_factors, 4-6 attack_points, 8-12 anticipated_qna, 6-9 process_questions. Be ruthless and specific. Never invent comps, sales, or values that aren't in the documents.
+
+REDFIN / MLS SOURCING CHECK:
+Look at the homeowner's ValuCheck report's Tier 1 page. If it is labeled "VERIFIED MARKET SALES" or "Redfin MLS-Reported Closings", or if it contains a "Data Source Note" referencing Redfin's MLS-reported transaction data, then the Tier 1 evidence is sourced from agent-reported MLS closings rather than EPCAD deed records. When that is the case:
+  • The rebuttal_script MUST include a sentence very close to: "My Tier 1 comparable sales are sourced from Redfin's publicly reported MLS transaction data — the same agent-submitted closing prices that form the basis of MLS records. This is the closest available equivalent to MLS data for a non-disclosure state and is consistent with §23.01's willing-buyer/willing-seller standard."
+  • At least one attack_points entry MUST be the same disclosure, labeled "Source authority of Tier 1 sales" with cite "Tex. Tax Code §23.01 — willing-buyer/willing-seller standard".
+
+If the Tier 1 evidence is sourced from EPCAD deed records (not Redfin), do not add the Redfin sentence — defend the EPCAD-deed methodology in the rebuttal instead."""
+
+
+@app.route("/hearing-prep")
+def hearing_prep():
+    return render_template("hearing_prep.html")
+
+
+@app.route("/api/hearing-prep", methods=["POST"])
+def api_hearing_prep():
+    """Run the hearing prep analysis against uploaded PDFs."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return jsonify({
+            "error": "ANTHROPIC_API_KEY is not configured on the server."
+        }), 500
+
+    address = (request.form.get("address") or "").strip()
+    epcad_value = (request.form.get("epcad_value") or "").strip()
+    requested_value = (request.form.get("requested_value") or "").strip()
+    hearing_date = (request.form.get("hearing_date") or "").strip()
+    condition_issues = (request.form.get("condition_issues") or "").strip()
+    purchase_price = (request.form.get("purchase_price") or "").strip()
+    purchase_year = (request.form.get("purchase_year") or "").strip()
+    licensed_appraisal = (request.form.get("licensed_appraisal") or "no").strip().lower()
+    licensed_appraisal = "yes" if licensed_appraisal in ("yes", "true", "1", "on") else "no"
+
+    if not address or not epcad_value or not requested_value:
+        return jsonify({
+            "error": "Address, EPCAD proposed value, and your requested value are required."
+        }), 400
+
+    files = request.files.getlist("pdfs")
+    if not files:
+        return jsonify({
+            "error": "Upload at least one PDF (EPCAD evidence packet and/or your ValuCheck report)."
+        }), 400
+
+    documents = []
+    for f in files:
+        if not f or not f.filename:
+            continue
+        raw = f.read()
+        if not raw:
+            continue
+        if len(raw) > 30 * 1024 * 1024:
+            return jsonify({
+                "error": f"{f.filename} is over 30MB. Please upload a smaller PDF."
+            }), 400
+        documents.append({
+            "type": "document",
+            "source": {
+                "type": "base64",
+                "media_type": "application/pdf",
+                "data": base64.standard_b64encode(raw).decode("ascii"),
+            },
+            "title": f.filename[:100],
+            "context": f"Uploaded file: {f.filename}",
+            "citations": {"enabled": False},
+        })
+
+    if not documents:
+        return jsonify({"error": "No valid PDF content was uploaded."}), 400
+
+    purchase_summary = "Not provided"
+    if purchase_price or purchase_year:
+        purchase_summary = (
+            f"{purchase_price or 'price not provided'}"
+            f" in {purchase_year or 'year not provided'}"
+        )
+
+    user_text = (
+        f"Subject property: {address}\n"
+        f"EPCAD proposed value: {epcad_value}\n"
+        f"Homeowner requested value: {requested_value}\n"
+        f"Hearing date: {hearing_date or 'Not provided'}\n"
+        f"Purchase price / year: {purchase_summary}\n"
+        f"Licensed appraisal in hand: {licensed_appraisal}\n"
+        f"Condition issues flagged by homeowner: {condition_issues or 'None reported'}\n\n"
+        "Read every attached PDF, then return the JSON object exactly per the schema. "
+        "Do not include any text outside the JSON."
+    )
+
+    try:
+        import anthropic
+    except ImportError:
+        return jsonify({
+            "error": "The 'anthropic' Python package is not installed on the server."
+        }), 500
+
+    client = anthropic.Anthropic(api_key=api_key)
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=4096,
+            system=HEARING_PREP_SYSTEM_PROMPT,
+            messages=[{
+                "role": "user",
+                "content": documents + [{"type": "text", "text": user_text}],
+            }],
+        )
+    except Exception as e:
+        return jsonify({"error": f"Anthropic API error: {e}"}), 502
+
+    raw_text = "".join(
+        block.text for block in message.content if getattr(block, "type", None) == "text"
+    ).strip()
+
+    if raw_text.startswith("```"):
+        raw_text = raw_text.strip("`")
+        if raw_text.lower().startswith("json"):
+            raw_text = raw_text[4:]
+        raw_text = raw_text.strip()
+
+    start = raw_text.find("{")
+    end = raw_text.rfind("}")
+    if start == -1 or end == -1:
+        return jsonify({
+            "error": "Model did not return JSON.",
+            "raw": raw_text[:2000],
+        }), 502
+
+    try:
+        parsed = json.loads(raw_text[start:end + 1])
+    except json.JSONDecodeError as e:
+        return jsonify({
+            "error": f"Could not parse model JSON: {e}",
+            "raw": raw_text[:2000],
+        }), 502
+
+    parsed["_inputs"] = {
+        "address": address,
+        "epcad_value": epcad_value,
+        "requested_value": requested_value,
+        "hearing_date": hearing_date,
+        "condition_issues": condition_issues,
+        "purchase_price": purchase_price,
+        "purchase_year": purchase_year,
+        "licensed_appraisal": licensed_appraisal,
+        "files": [f.filename for f in files if f and f.filename],
+    }
+    return jsonify(parsed)
 
 
 if __name__ == "__main__":

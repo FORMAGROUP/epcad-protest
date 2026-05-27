@@ -19,6 +19,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 DB_PATH = os.path.join(ROOT, "data", "epcad.db")
 CSV_PATH = os.path.join(ROOT, "data", "redfin_listings.csv")
 TIMESTAMP_PATH = os.path.join(ROOT, "data", "redfin_last_updated.txt")
+SOLD_CSV_PATH = os.path.join(ROOT, "data", "redfin_sold.csv")
+SOLD_TIMESTAMP_PATH = os.path.join(ROOT, "data", "redfin_sold_last_updated.txt")
 
 HEADERS = {
     "User-Agent": (
@@ -72,6 +74,48 @@ INSERT OR REPLACE INTO listings (
     beds, baths, year_built, lot_size, days_on_market, status,
     url, latitude, longitude, fetched_date
 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+"""
+
+# --- Sold listings (Redfin status=9, last 365 days) ---
+
+SOLD_CSV_FIELDS = [
+    "address", "city", "zip", "price", "sqft", "price_per_sqft",
+    "beds", "baths", "year_built", "sold_date", "lat", "lng",
+    "days_on_market", "redfin_url",
+]
+
+CREATE_SOLD_LISTINGS = """
+CREATE TABLE IF NOT EXISTS sold_listings (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    address         TEXT,
+    zip             TEXT,
+    price           REAL,
+    sqft            REAL,
+    price_per_sqft  REAL,
+    beds            REAL,
+    baths           REAL,
+    year_built      INTEGER,
+    sold_date       TEXT,
+    lat             REAL,
+    lng             REAL,
+    days_on_market  INTEGER,
+    redfin_url      TEXT,
+    cached_at       TEXT,
+    UNIQUE(address, sold_date)
+);
+"""
+
+CREATE_SOLD_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_sold_zip ON sold_listings(zip)",
+    "CREATE INDEX IF NOT EXISTS idx_sold_sqft ON sold_listings(sqft)",
+    "CREATE INDEX IF NOT EXISTS idx_sold_date ON sold_listings(sold_date)",
+]
+
+UPSERT_SOLD = """
+INSERT OR IGNORE INTO sold_listings (
+    address, zip, price, sqft, price_per_sqft, beds, baths,
+    year_built, sold_date, lat, lng, days_on_market, redfin_url, cached_at
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """
 
 MAX_AGE_DAYS = 7
@@ -287,7 +331,8 @@ def protest_season_warning():
 def fetch_and_store(db_path=None):
     """Check CSV freshness, download if needed, parse into SQLite.
 
-    Returns count of listings stored.
+    Refreshes both active listings and sold listings (same 7-day cache).
+    Returns count of active listings stored.
     """
     if db_path is None:
         db_path = DB_PATH
@@ -308,7 +353,272 @@ def fetch_and_store(db_path=None):
                 print("  ERROR: No Redfin data available.", file=sys.stderr)
                 return 0
 
-    return _parse_csv_into_db(db_path)
+    active_count = _parse_csv_into_db(db_path)
+
+    # Sold listings — same 7-day refresh cadence.
+    try:
+        fetch_and_store_sold(db_path=db_path)
+    except Exception as exc:
+        print(f"  WARNING: sold-listings refresh failed: {exc}", file=sys.stderr)
+
+    return active_count
+
+
+# ---------------------------------------------------------------------------
+# SOLD LISTINGS (Tier 1 — Redfin closed sales, last 365 days)
+# ---------------------------------------------------------------------------
+
+def _sold_csv_is_fresh():
+    """Return True if sold CSV exists and was updated within MAX_AGE_DAYS."""
+    if not os.path.exists(SOLD_CSV_PATH) or not os.path.exists(SOLD_TIMESTAMP_PATH):
+        return False
+    try:
+        with open(SOLD_TIMESTAMP_PATH) as f:
+            ts = f.read().strip()
+        return datetime.now() - datetime.fromisoformat(ts) < timedelta(days=MAX_AGE_DAYS)
+    except (ValueError, OSError):
+        return False
+
+
+def _normalize_sold_date(raw):
+    """Convert Redfin's sold-date payload into ISO YYYY-MM-DD.
+
+    Accepts millisecond epoch numbers, ISO date strings, and 'MM/DD/YYYY'.
+    Returns None if it can't parse.
+    """
+    if raw is None or raw == "":
+        return None
+    # Epoch milliseconds (Redfin commonly returns this)
+    if isinstance(raw, (int, float)):
+        try:
+            return datetime.utcfromtimestamp(raw / 1000).strftime("%Y-%m-%d")
+        except (OverflowError, OSError, ValueError):
+            return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    if s.isdigit() and len(s) >= 10:
+        try:
+            return datetime.utcfromtimestamp(int(s) / 1000).strftime("%Y-%m-%d")
+        except (OverflowError, OSError, ValueError):
+            pass
+    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%m/%d/%Y", "%m-%d-%Y"):
+        try:
+            return datetime.strptime(s[:len(fmt) + 4], fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
+def _fetch_zip_sold_json(zipcode, region_id):
+    """Fetch sold single-family listings (last 365 days) for one ZIP."""
+    url = "https://www.redfin.com/stingray/api/gis"
+    params = {
+        "al": 1, "include_pending_homes": "false", "isRentals": "false",
+        "num_homes": 350, "ord": "redfin-recommended-asc", "page_number": 1,
+        "region_id": region_id, "region_type": 2,
+        "sf": "1,2,3,5,6,7",
+        "status": 9, "sold_within_days": 365,
+        "uipt": 1, "v": 8,
+    }
+    ref = {**HEADERS, "Referer": f"https://www.redfin.com/zipcode/{zipcode}/filter/include=sold-1yr"}
+    try:
+        r = httpx.get(url, params=params, headers=ref,
+                      follow_redirects=True, timeout=30)
+        text = r.text
+        if text.startswith("{}&&"):
+            text = text[4:]
+        data = json.loads(text)
+        return data.get("payload", {}).get("homes", [])
+    except (httpx.HTTPError, json.JSONDecodeError) as e:
+        print(f"    WARNING: sold fetch failed for {zipcode}: {e}", file=sys.stderr)
+        return []
+
+
+def _download_sold_csv():
+    """Pull Redfin sold listings per-ZIP and write to local CSV."""
+    print("  Downloading Redfin sold listings (last 365 days) ...")
+    all_rows = []
+    seen = set()  # (address, sold_date) for in-batch dedupe
+
+    for zipcode in FETCH_ZIPS:
+        region_id = _lookup_region_id(zipcode)
+        if not region_id:
+            print(f"    {zipcode}: region lookup failed, skipping")
+            continue
+
+        homes = _fetch_zip_sold_json(zipcode, region_id)
+        added = 0
+        for h in homes:
+            zc = h.get("zip", "")
+            if zc not in EP_ZIPS:
+                continue
+
+            address = (_val(h.get("streetLine"), "") or "").strip()
+            sold_date = _normalize_sold_date(
+                _val(h.get("soldDate")) or h.get("lastSaleDate")
+                or _val(h.get("lastSaleDate"))
+            )
+            if not address or not sold_date:
+                continue
+
+            dedupe_key = (address.upper(), sold_date)
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+
+            ll = _val(h.get("latLong"), {})
+            lat = ll.get("latitude") if isinstance(ll, dict) else None
+            lng = ll.get("longitude") if isinstance(ll, dict) else None
+
+            all_rows.append({
+                "address": address,
+                "city": h.get("city", ""),
+                "zip": zc,
+                "price": _val(h.get("price")),
+                "sqft": _val(h.get("sqFt")),
+                "price_per_sqft": _val(h.get("pricePerSqFt")),
+                "beds": h.get("beds"),
+                "baths": h.get("baths"),
+                "year_built": _val(h.get("yearBuilt")),
+                "sold_date": sold_date,
+                "lat": lat,
+                "lng": lng,
+                "days_on_market": _val(h.get("dom")),
+                "redfin_url": "https://www.redfin.com" + (h.get("url") or ""),
+            })
+            added += 1
+        print(f"    {zipcode}: {added} sold")
+        time.sleep(0.5)
+
+    if not all_rows:
+        print("  ERROR: No sold listings fetched.", file=sys.stderr)
+        return False
+
+    os.makedirs(os.path.dirname(SOLD_CSV_PATH), exist_ok=True)
+    with open(SOLD_CSV_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=SOLD_CSV_FIELDS)
+        writer.writeheader()
+        for r in all_rows:
+            writer.writerow({k: r.get(k) for k in SOLD_CSV_FIELDS})
+
+    with open(SOLD_TIMESTAMP_PATH, "w") as f:
+        f.write(datetime.now().isoformat())
+
+    print(f"  Saved {len(all_rows)} sold listings to {SOLD_CSV_PATH}")
+    return True
+
+
+def _parse_sold_csv_into_db(db_path):
+    """Parse redfin_sold.csv into sold_listings. Dedupes on (address, sold_date)."""
+    if not os.path.exists(SOLD_CSV_PATH):
+        print("  ERROR: Sold CSV not found.", file=sys.stderr)
+        return 0
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    # Fresh load — drop and recreate so stale rows from older fetches don't linger.
+    cur.execute("DROP TABLE IF EXISTS sold_listings")
+    cur.execute(CREATE_SOLD_LISTINGS)
+    for stmt in CREATE_SOLD_INDEXES:
+        cur.execute(stmt)
+
+    today = date.today().isoformat()
+    inserted = 0
+    with open(SOLD_CSV_PATH, encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            zipcode = (row.get("zip") or "").strip()[:5]
+            if zipcode not in EP_ZIPS:
+                continue
+
+            price = _safe_float(row.get("price"))
+            if not price or price <= 0:
+                continue
+            sqft = _safe_float(row.get("sqft"))
+            psf = _safe_float(row.get("price_per_sqft"))
+            if not psf and sqft and sqft > 0:
+                psf = round(price / sqft, 2)
+
+            address = (row.get("address") or "").strip()
+            sold_date = (row.get("sold_date") or "").strip() or None
+            if not address or not sold_date:
+                continue
+
+            cur.execute(UPSERT_SOLD, (
+                address,
+                zipcode,
+                price,
+                sqft,
+                psf,
+                _safe_float(row.get("beds")),
+                _safe_float(row.get("baths")),
+                _safe_int(row.get("year_built")),
+                sold_date,
+                _safe_float(row.get("lat")),
+                _safe_float(row.get("lng")),
+                _safe_int(row.get("days_on_market")),
+                (row.get("redfin_url") or "").strip(),
+                today,
+            ))
+            if cur.rowcount > 0:
+                inserted += 1
+
+    conn.commit()
+    conn.close()
+    print(f"  Sold listings loaded into DB: {inserted}")
+    return inserted
+
+
+def fetch_and_store_sold(db_path=None):
+    """Refresh sold listings (7-day cache same as active listings)."""
+    if db_path is None:
+        db_path = DB_PATH
+
+    if _sold_csv_is_fresh():
+        age = (datetime.now() - datetime.fromisoformat(
+            open(SOLD_TIMESTAMP_PATH).read().strip())).days
+        print(f"  Using cached Redfin sold CSV ({age} day(s) old)")
+    else:
+        success = _download_sold_csv()
+        if not success:
+            if os.path.exists(SOLD_CSV_PATH):
+                print("  WARNING: Sold download failed, using stale CSV",
+                      file=sys.stderr)
+            else:
+                print("  ERROR: No Redfin sold data available.", file=sys.stderr)
+                return 0
+
+    return _parse_sold_csv_into_db(db_path)
+
+
+def get_sold_listings(zip_code, db_path=None):
+    """Return cached Redfin sold comps for a ZIP — same pattern as get_listings.
+
+    Each row is a dict matching the sold_listings columns.
+    """
+    if db_path is None:
+        db_path = DB_PATH
+    if not os.path.exists(db_path):
+        return []
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='sold_listings'")
+    if not cur.fetchone():
+        conn.close()
+        return []
+    cur.execute("""
+        SELECT address, zip, price, sqft, price_per_sqft, beds, baths,
+               year_built, sold_date, lat, lng, days_on_market,
+               redfin_url, cached_at
+        FROM sold_listings
+        WHERE zip = ? AND price > 0
+        ORDER BY sold_date DESC
+    """, (str(zip_code),))
+    rows = [_dict_row(cur, r) for r in cur.fetchall()]
+    conn.close()
+    return rows
 
 
 def find_tier2_comps(conn, subject, config):

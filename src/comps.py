@@ -369,6 +369,165 @@ def tier1_closed_sales(conn, subject, config):
     return comps[:6]
 
 
+def tier1_redfin_sold(conn, subject, config):
+    """Find Tier 1 comps from Redfin sold listings (last 12 months).
+
+    Returns comps shaped like the EPCAD-deed comps so they can be passed
+    through adjust_tier1() and into the existing report.py templates.
+    Each comp carries _source='redfin_sold' and source_label='Verified
+    Market Sale'.
+
+    Distance-tiered: 0.25mi → 0.5mi → 1.0mi → ZIP fallback.
+    Filters: ±15% sqft, ±10 years built.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='sold_listings'")
+    if not cur.fetchone():
+        return []
+
+    subj_sqft = subject.get("living_area_sqft") or 0
+    if subj_sqft <= 0:
+        return []
+    subj_year = subject.get("year_built")
+    subj_zip = subject.get("situs_zip")
+    subj_lat = subject.get("latitude")
+    subj_lng = subject.get("longitude")
+    subj_acct = subject.get("account_number")
+
+    # Geocode subject if we don't already have lat/lng.
+    if (subj_lat is None or subj_lng is None) and subj_acct:
+        ensure_geocoded(conn, [subj_acct])
+        cur.execute(
+            "SELECT latitude, longitude FROM properties WHERE account_number = ?",
+            (subj_acct,))
+        row = cur.fetchone()
+        if row:
+            subj_lat, subj_lng = row
+            subject["latitude"] = subj_lat
+            subject["longitude"] = subj_lng
+
+    sqft_lo = subj_sqft * 0.85
+    sqft_hi = subj_sqft * 1.15
+
+    # Pull all candidate sales — start with subject ZIP if known, else all.
+    if subj_zip:
+        cur.execute("""
+            SELECT * FROM sold_listings
+            WHERE zip = ?
+              AND sqft BETWEEN ? AND ?
+              AND price > 0
+            ORDER BY sold_date DESC
+        """, (subj_zip, sqft_lo, sqft_hi))
+    else:
+        cur.execute("""
+            SELECT * FROM sold_listings
+            WHERE sqft BETWEEN ? AND ?
+              AND price > 0
+            ORDER BY sold_date DESC
+        """, (sqft_lo, sqft_hi))
+    candidates = [dict_row(cur, r) for r in cur.fetchall()]
+
+    # If ZIP came up too thin and we know subject ZIP, expand to all EP ZIPs.
+    if subj_zip and len(candidates) < 6:
+        cur.execute("""
+            SELECT * FROM sold_listings
+            WHERE sqft BETWEEN ? AND ?
+              AND price > 0
+            ORDER BY sold_date DESC
+        """, (sqft_lo, sqft_hi))
+        all_candidates = [dict_row(cur, r) for r in cur.fetchall()]
+        seen = {(c["address"], c["sold_date"]) for c in candidates}
+        for c in all_candidates:
+            key = (c["address"], c["sold_date"])
+            if key not in seen:
+                candidates.append(c)
+                seen.add(key)
+
+    # Year-built filter (soft — only enforce if it doesn't starve us).
+    if subj_year:
+        filtered = [c for c in candidates
+                    if not c.get("year_built")
+                    or abs(c["year_built"] - subj_year) <= 10]
+        if len(filtered) >= 3:
+            candidates = filtered
+
+    # Distance scoring (Haversine; comps without lat/lng get distance=None).
+    for c in candidates:
+        c["distance_miles"] = haversine_miles(
+            subj_lat, subj_lng, c.get("lat"), c.get("lng"))
+
+    # Distance-tiered selection: 0.25 → 0.5 → 1.0 → ZIP fallback.
+    selected = candidates
+    if subj_lat is not None and subj_lng is not None:
+        within_quarter = [c for c in candidates
+                          if c["distance_miles"] is not None
+                          and c["distance_miles"] <= 0.25]
+        within_half = [c for c in candidates
+                       if c["distance_miles"] is not None
+                       and c["distance_miles"] <= 0.5]
+        within_one = [c for c in candidates
+                      if c["distance_miles"] is not None
+                      and c["distance_miles"] <= 1.0]
+        if len(within_quarter) >= 3:
+            selected = within_quarter
+        elif len(within_half) >= 3:
+            selected = within_half
+        elif len(within_one) >= 3:
+            selected = within_one
+        # else: ZIP-level fallback (selected stays as the full candidates list)
+
+    # Sort by distance, then most-recent sale.
+    selected.sort(key=lambda c: (
+        c["distance_miles"] if c["distance_miles"] is not None else 999,
+        c.get("sold_date") or "",
+    ))
+
+    # Shape each row to match EPCAD-deed comps so adjust_tier1 + report.py
+    # render cleanly. Keep the original Redfin fields alongside for the API.
+    shaped = []
+    for c in selected[:6]:
+        price = c.get("price") or 0
+        sqft = c.get("sqft") or 0
+        psf = c.get("price_per_sqft") or (round(price / sqft, 2) if sqft else None)
+        shaped.append({
+            # ---- fields adjust_tier1 / report.py expect ----
+            "account_number": f"RFN-{c.get('id') or c.get('address') or ''}"[:32],
+            "situs_address": c.get("address") or "",
+            "situs_city": "",
+            "situs_zip": c.get("zip") or "",
+            "sale_price": price,
+            "sale_date": c.get("sold_date"),
+            "sale_psf": psf,
+            "living_area_sqft": sqft,
+            "year_built": c.get("year_built"),
+            "lot_size_sqft": None,
+            "latitude": c.get("lat"),
+            "longitude": c.get("lng"),
+            "distance_miles": c.get("distance_miles"),
+            # ---- source tagging ----
+            "_source": "redfin_sold",
+            "source_label": "Verified Market Sale",
+            "redfin_url": c.get("redfin_url"),
+            "days_on_market": c.get("days_on_market"),
+        })
+    return shaped
+
+
+def select_tier1_comps(conn, subject, config):
+    """Pick the best Tier 1 source for the subject.
+
+    Returns (comps, source) where source is 'redfin_sold' or 'epcad_deeds'.
+    Prefers Redfin sold comps (actual reported transaction prices) when at
+    least 3 are available. Falls back to EPCAD deeds otherwise.
+    """
+    redfin = tier1_redfin_sold(conn, subject, config)
+    if len(redfin) >= 3:
+        return redfin, "redfin_sold"
+    deeds = tier1_closed_sales(conn, subject, config)
+    return deeds, "epcad_deeds"
+
+
 def tier3_equal_uniform(conn, subject, config):
     """Find comparable properties for Equal & Uniform analysis (Tier 3).
 

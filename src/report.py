@@ -319,10 +319,19 @@ def _page1_summary(subject, recommendation, ss, protest_year):
 
 
 def _page2_tier1(subject, comps, ss):
-    """Page 2: Tier 1 closed sales URAR-style grid."""
+    """Page 2: Tier 1 closed sales URAR-style grid.
+
+    Detects whether comps are sourced from Redfin's MLS-reported sold
+    data (each comp carries _source='redfin_sold') and adjusts the
+    banner + footnote accordingly.
+    """
     elements = []
-    elements.append(_tier_banner(
-        "TIER 1: COMPARABLE CLOSED SALES (Strongest Evidence)"))
+    redfin_sourced = bool(comps) and any(
+        c.get("_source") == "redfin_sold" for c in comps)
+    banner = ("TIER 1: VERIFIED MARKET SALES (Redfin MLS-Reported Closings)"
+              if redfin_sourced
+              else "TIER 1: COMPARABLE CLOSED SALES (Strongest Evidence)")
+    elements.append(_tier_banner(banner))
     elements.append(Spacer(1, 8))
 
     if not comps:
@@ -449,11 +458,35 @@ def _page2_tier1(subject, comps, ss):
     elements.append(Paragraph(
         "Cite: Tex. Tax Code §23.01 — market value as of January 1.",
         ss["SectionNote"]))
-    elements.append(Paragraph(
-        "Source: EPCAD Deeds data (public record arm's-length transactions). "
-        "Texas is a non-disclosure state — sale prices reflect EPCAD market value "
-        "estimates at time of deed transfer, not recorded transaction prices.",
-        ss["SectionNote"]))
+
+    if redfin_sourced:
+        # Verbatim disclaimer required by the ARB-evidence brief.
+        disclaimer_text = (
+            "<b>Data Source Note:</b> Sale prices are sourced from Redfin's "
+            "publicly reported transaction data, which aggregates MLS-reported "
+            "closing prices submitted by licensed real estate agents at time of "
+            "closing. While Texas is a non-disclosure state and deed records do "
+            "not include sale prices, agent-reported MLS data is recognized as "
+            "the most reliable available proxy for market transactions. This "
+            "methodology mirrors the data sources used by certified appraisers "
+            "and is consistent with the willing-buyer/willing-seller standard "
+            "under Tex. Tax Code §23.01. ARB panels routinely accept "
+            "agent-reported sale prices as market evidence."
+        )
+        disclaimer_style = ParagraphStyle(
+            "Tier1Disclaimer", parent=ss["Normal"],
+            fontSize=8, leading=11, textColor=NAVY,
+            backColor=LIGHT_GRAY,
+            borderColor=GOLD, borderWidth=0.75, borderPadding=(8, 10, 8, 10),
+            spaceBefore=6, spaceAfter=0)
+        elements.append(Spacer(1, 4))
+        elements.append(Paragraph(disclaimer_text, disclaimer_style))
+    else:
+        elements.append(Paragraph(
+            "Source: EPCAD Deeds data (public record arm's-length transactions). "
+            "Texas is a non-disclosure state — sale prices reflect EPCAD market value "
+            "estimates at time of deed transfer, not recorded transaction prices.",
+            ss["SectionNote"]))
 
     return elements
 

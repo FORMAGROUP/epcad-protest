@@ -7,3 +7,4 @@ folium
 gunicorn
 stripe
 streamlit
+anthropic

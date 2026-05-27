@@ -134,6 +134,18 @@
     color:rgba(255,255,255,0.7);
   }
   .header-deadline strong { color:var(--gold-light); }
+  .header-nav { display:flex; align-items:center; gap:1.25rem; }
+  .header-nav a {
+    color:rgba(255,255,255,0.85);
+    text-decoration:none;
+    font-family:'DM Sans','Lato',sans-serif;
+    font-size:14px; font-weight:500;
+    transition:color 0.15s;
+  }
+  .header-nav a:hover { color:var(--gold-light); }
+  @media (max-width: 720px) {
+    .header-nav a { font-size:13px; }
+  }
 
   /* ============ HERO ============ */
   .hero {
@@ -1164,7 +1176,10 @@
     <img src="/static/logo.svg" alt="ValuCheck logo">
     <span class="brand-name">Valu<span>Check</span></span>
   </div>
-  <div class="header-deadline">Deadline: <strong>May 15, 2026</strong></div>
+  <div class="header-nav">
+    <a href="/hearing-prep">Hearing Prep</a>
+    <span class="header-deadline">Deadline: <strong>May 15, 2026</strong></span>
+  </div>
 </header>
 
 <!-- ============ SEARCH VIEW ============ -->
