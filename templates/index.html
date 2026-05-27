@@ -105,14 +105,6 @@
     font-size:16px; line-height:1.6;
   }
 
-  /* ============ TOP BANNER (red, full-width) ============ */
-  .deadline-banner {
-    background:var(--red); color:white; text-align:center;
-    padding:0.8rem 1rem;
-    font-size:16px; font-weight:600; line-height:1.4;
-  }
-  .deadline-banner strong { font-weight:700; }
-
   /* ============ HEADER ============ */
   header {
     background:var(--navy); padding:0.85rem 1.5rem;
@@ -129,11 +121,6 @@
     letter-spacing:-0.5px;
   }
   .brand-name span { color:var(--gold-light); }
-  .header-deadline {
-    font-family:'DM Mono',monospace; font-size:13px;
-    color:rgba(255,255,255,0.7);
-  }
-  .header-deadline strong { color:var(--gold-light); }
   .header-nav { display:flex; align-items:center; gap:1.25rem; }
   .header-nav a {
     color:rgba(255,255,255,0.85);
@@ -1138,9 +1125,7 @@
   /* ============ MOBILE ============ */
   @media (max-width:600px) {
     body { line-height:1.7; }
-    .deadline-banner { font-size:15px; padding:0.75rem 0.85rem; }
     header { padding:0.75rem 1rem; }
-    .header-deadline { display:none; }
     .brand-name { font-size:1.25rem; }
 
     .hero { padding:2.5rem 1rem 3rem; }
@@ -1209,10 +1194,6 @@
 </head>
 <body>
 
-<div class="deadline-banner">
-  &#9888; Protest Deadline: <strong>May 15, 2026</strong> &mdash; <strong id="days-left">17 days</strong> remaining
-</div>
-
 <header>
   <div class="brand" onclick="goHome()">
     <img src="/static/logo.svg" alt="ValuCheck logo">
@@ -1220,7 +1201,6 @@
   </div>
   <div class="header-nav">
     <a href="/hearing-prep">Hearing Prep</a>
-    <span class="header-deadline">Deadline: <strong>May 15, 2026</strong></span>
   </div>
 </header>
 
@@ -1615,14 +1595,6 @@
 </div>
 
 <script>
-  // Deadline countdown
-  (function() {
-    var deadline = new Date('2026-05-15');
-    var now = new Date(); now.setHours(0,0,0,0);
-    var days = Math.max(0, Math.ceil((deadline - now) / 86400000));
-    document.getElementById('days-left').textContent = days + ' days';
-  })();
-
   var currentResult = null;
   var deliveryMode = 'download';
   var progressInterval = null;
