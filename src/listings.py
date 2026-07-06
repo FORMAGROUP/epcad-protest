@@ -477,11 +477,23 @@ def _normalize_sold_date(raw):
             return datetime.utcfromtimestamp(int(s) / 1000).strftime("%Y-%m-%d")
         except (OverflowError, OSError, ValueError):
             pass
-    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%m/%d/%Y", "%m-%d-%Y"):
+    # Try each format on the raw string. The previous version sliced to
+    # len(fmt)+4, which turned "%Y-%m-%d" (len 8) into s[:12] and made
+    # ISO date-time strings unparseable.
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y"):
         try:
-            return datetime.strptime(s[:len(fmt) + 4], fmt).strftime("%Y-%m-%d")
+            return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
         except ValueError:
             continue
+    # Last chance: many Redfin payloads embed the date as the first
+    # 10 chars of an ISO datetime with a 'T' separator or trailing
+    # timezone. Try just the date prefix.
+    if len(s) >= 10:
+        try:
+            return datetime.strptime(s[:10], "%Y-%m-%d").strftime("%Y-%m-%d")
+        except ValueError:
+            pass
     return None
 
 
