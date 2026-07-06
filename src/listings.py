@@ -260,7 +260,13 @@ def _download_csv():
 def _parse_csv_into_db(db_path):
     """Parse redfin_listings.csv into the SQLite listings table.
 
-    Returns count of listings stored.
+    Writes to a staging table `listings_new` first. Only after we confirm
+    the new load has rows do we drop the old `listings` and rename the
+    staging table into place — all inside a transaction. If parsing fails
+    or the CSV yields zero rows, the existing `listings` table is left
+    untouched.
+
+    Returns count of listings stored, or 0 if the load was rejected.
     """
     if not os.path.exists(CSV_PATH):
         print("  ERROR: CSV file not found.", file=sys.stderr)
@@ -268,51 +274,91 @@ def _parse_csv_into_db(db_path):
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    cur.execute("DROP TABLE IF EXISTS listings")
-    cur.execute(CREATE_LISTINGS)
+
+    # Fresh staging table — clear any leftover from a previous aborted run.
+    cur.execute("DROP TABLE IF EXISTS listings_new")
+    create_staging = CREATE_LISTINGS.replace(
+        "CREATE TABLE IF NOT EXISTS listings ",
+        "CREATE TABLE listings_new ")
+    cur.execute(create_staging)
+    upsert_staging = UPSERT_LISTING.replace(
+        "INSERT OR REPLACE INTO listings ",
+        "INSERT OR REPLACE INTO listings_new ")
 
     today = date.today().isoformat()
     inserted = 0
 
-    with open(CSV_PATH, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            zipcode = (row.get("zip") or "").strip()[:5]
-            if zipcode not in EP_ZIPS:
-                continue
+    try:
+        with open(CSV_PATH, encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                zipcode = (row.get("zip") or "").strip()[:5]
+                if zipcode not in EP_ZIPS:
+                    continue
 
-            price = _safe_float(row.get("price"))
-            if not price or price <= 0:
-                continue
+                price = _safe_float(row.get("price"))
+                if not price or price <= 0:
+                    continue
 
-            sqft = _safe_float(row.get("sqft"))
-            psf = _safe_float(row.get("price_per_sqft"))
-            if not psf and sqft and sqft > 0:
-                psf = round(price / sqft, 2)
+                sqft = _safe_float(row.get("sqft"))
+                psf = _safe_float(row.get("price_per_sqft"))
+                if not psf and sqft and sqft > 0:
+                    psf = round(price / sqft, 2)
 
-            values = (
-                (row.get("listing_id") or "").strip(),
-                (row.get("address") or "").strip(),
-                (row.get("city") or "").strip(),
-                zipcode,
-                price,
-                sqft,
-                psf,
-                _safe_float(row.get("beds")),
-                _safe_float(row.get("baths")),
-                _safe_int(row.get("year_built")),
-                _safe_float(row.get("lot_size")),
-                _safe_int(row.get("days_on_market")),
-                (row.get("status") or "Active").strip(),
-                (row.get("url") or "").strip(),
-                _safe_float(row.get("latitude")),
-                _safe_float(row.get("longitude")),
-                today,
-            )
-            cur.execute(UPSERT_LISTING, values)
-            inserted += 1
+                values = (
+                    (row.get("listing_id") or "").strip(),
+                    (row.get("address") or "").strip(),
+                    (row.get("city") or "").strip(),
+                    zipcode,
+                    price,
+                    sqft,
+                    psf,
+                    _safe_float(row.get("beds")),
+                    _safe_float(row.get("baths")),
+                    _safe_int(row.get("year_built")),
+                    _safe_float(row.get("lot_size")),
+                    _safe_int(row.get("days_on_market")),
+                    (row.get("status") or "Active").strip(),
+                    (row.get("url") or "").strip(),
+                    _safe_float(row.get("latitude")),
+                    _safe_float(row.get("longitude")),
+                    today,
+                )
+                cur.execute(upsert_staging, values)
+                inserted += 1
+    except Exception as exc:
+        print(f"  ERROR: parse failed, keeping existing listings: {exc}",
+              file=sys.stderr)
+        conn.rollback()
+        cur.execute("DROP TABLE IF EXISTS listings_new")
+        conn.commit()
+        conn.close()
+        return 0
 
+    if inserted == 0:
+        print("  ERROR: CSV produced zero valid rows, keeping existing "
+              "listings.", file=sys.stderr)
+        cur.execute("DROP TABLE IF EXISTS listings_new")
+        conn.commit()
+        conn.close()
+        return 0
+
+    # Flush the implicit transaction opened by the INSERT loop before we
+    # start an explicit one for the swap.
     conn.commit()
+
+    # Atomic swap: drop the live table and promote the staging table.
+    try:
+        cur.execute("BEGIN")
+        cur.execute("DROP TABLE IF EXISTS listings")
+        cur.execute("ALTER TABLE listings_new RENAME TO listings")
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        print(f"  ERROR: table swap failed: {exc}", file=sys.stderr)
+        conn.close()
+        return 0
+
     conn.close()
     print(f"  Listings loaded into DB: {inserted}")
     return inserted
@@ -510,61 +556,103 @@ def _download_sold_csv():
 
 
 def _parse_sold_csv_into_db(db_path):
-    """Parse redfin_sold.csv into sold_listings. Dedupes on (address, sold_date)."""
+    """Parse redfin_sold.csv into sold_listings. Dedupes on (address, sold_date).
+
+    Same safe-swap pattern as _parse_csv_into_db: write to sold_listings_new,
+    require inserted > 0, then swap tables in a transaction. If parsing
+    fails or the CSV is empty, the existing sold_listings table is left
+    untouched.
+    """
     if not os.path.exists(SOLD_CSV_PATH):
         print("  ERROR: Sold CSV not found.", file=sys.stderr)
         return 0
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    # Fresh load — drop and recreate so stale rows from older fetches don't linger.
-    cur.execute("DROP TABLE IF EXISTS sold_listings")
-    cur.execute(CREATE_SOLD_LISTINGS)
-    for stmt in CREATE_SOLD_INDEXES:
-        cur.execute(stmt)
+
+    cur.execute("DROP TABLE IF EXISTS sold_listings_new")
+    create_staging = CREATE_SOLD_LISTINGS.replace(
+        "CREATE TABLE IF NOT EXISTS sold_listings ",
+        "CREATE TABLE sold_listings_new ")
+    cur.execute(create_staging)
+    upsert_staging = UPSERT_SOLD.replace(
+        "INSERT OR IGNORE INTO sold_listings ",
+        "INSERT OR IGNORE INTO sold_listings_new ")
 
     today = date.today().isoformat()
     inserted = 0
-    with open(SOLD_CSV_PATH, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            zipcode = (row.get("zip") or "").strip()[:5]
-            if zipcode not in EP_ZIPS:
-                continue
+    try:
+        with open(SOLD_CSV_PATH, encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                zipcode = (row.get("zip") or "").strip()[:5]
+                if zipcode not in EP_ZIPS:
+                    continue
 
-            price = _safe_float(row.get("price"))
-            if not price or price <= 0:
-                continue
-            sqft = _safe_float(row.get("sqft"))
-            psf = _safe_float(row.get("price_per_sqft"))
-            if not psf and sqft and sqft > 0:
-                psf = round(price / sqft, 2)
+                price = _safe_float(row.get("price"))
+                if not price or price <= 0:
+                    continue
+                sqft = _safe_float(row.get("sqft"))
+                psf = _safe_float(row.get("price_per_sqft"))
+                if not psf and sqft and sqft > 0:
+                    psf = round(price / sqft, 2)
 
-            address = (row.get("address") or "").strip()
-            sold_date = (row.get("sold_date") or "").strip() or None
-            if not address or not sold_date:
-                continue
+                address = (row.get("address") or "").strip()
+                sold_date = (row.get("sold_date") or "").strip() or None
+                if not address or not sold_date:
+                    continue
 
-            cur.execute(UPSERT_SOLD, (
-                address,
-                zipcode,
-                price,
-                sqft,
-                psf,
-                _safe_float(row.get("beds")),
-                _safe_float(row.get("baths")),
-                _safe_int(row.get("year_built")),
-                sold_date,
-                _safe_float(row.get("lat")),
-                _safe_float(row.get("lng")),
-                _safe_int(row.get("days_on_market")),
-                (row.get("redfin_url") or "").strip(),
-                today,
-            ))
-            if cur.rowcount > 0:
-                inserted += 1
+                cur.execute(upsert_staging, (
+                    address,
+                    zipcode,
+                    price,
+                    sqft,
+                    psf,
+                    _safe_float(row.get("beds")),
+                    _safe_float(row.get("baths")),
+                    _safe_int(row.get("year_built")),
+                    sold_date,
+                    _safe_float(row.get("lat")),
+                    _safe_float(row.get("lng")),
+                    _safe_int(row.get("days_on_market")),
+                    (row.get("redfin_url") or "").strip(),
+                    today,
+                ))
+                if cur.rowcount > 0:
+                    inserted += 1
+    except Exception as exc:
+        print(f"  ERROR: sold parse failed, keeping existing sold_listings: "
+              f"{exc}", file=sys.stderr)
+        conn.rollback()
+        cur.execute("DROP TABLE IF EXISTS sold_listings_new")
+        conn.commit()
+        conn.close()
+        return 0
 
+    if inserted == 0:
+        print("  ERROR: Sold CSV produced zero valid rows, keeping existing "
+              "sold_listings.", file=sys.stderr)
+        cur.execute("DROP TABLE IF EXISTS sold_listings_new")
+        conn.commit()
+        conn.close()
+        return 0
+
+    # Flush the implicit transaction opened by the INSERT loop first.
     conn.commit()
+
+    try:
+        cur.execute("BEGIN")
+        cur.execute("DROP TABLE IF EXISTS sold_listings")
+        cur.execute("ALTER TABLE sold_listings_new RENAME TO sold_listings")
+        for stmt in CREATE_SOLD_INDEXES:
+            cur.execute(stmt)
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        print(f"  ERROR: sold table swap failed: {exc}", file=sys.stderr)
+        conn.close()
+        return 0
+
     conn.close()
     print(f"  Sold listings loaded into DB: {inserted}")
     return inserted
