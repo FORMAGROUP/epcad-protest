@@ -188,10 +188,33 @@ def _fetch_zip_json(zipcode, region_id):
 
 
 def _val(obj, default=None):
-    """Extract .value from Redfin's nested {value: X} pattern."""
+    """Extract a value from Redfin's {"value": X} wrapper.
+
+    Returns default whenever the value is missing OR the extracted
+    scalar is None. The old version returned None when a dict stored
+    {"value": None} because dict.get returns the stored None, not the
+    default sentinel.
+    """
+    if obj is None:
+        return default
     if isinstance(obj, dict):
-        return obj.get("value", default)
-    return obj if obj is not None else default
+        v = obj.get("value")
+        return v if v is not None else default
+    return obj
+
+
+def _first_val(*candidates):
+    """Return the first _val(c) that is not None.
+
+    Used to chain Redfin ID fields (mlsId → listingId → propertyId)
+    without collapsing to the string "None" when the earlier field is
+    a dict whose stored value is None.
+    """
+    for c in candidates:
+        v = _val(c)
+        if v is not None:
+            return v
+    return None
 
 
 def _download_csv():
@@ -212,7 +235,13 @@ def _download_csv():
             zc = h.get("zip", "")
             if zc not in EP_ZIPS:
                 continue
-            lid = str(_val(h.get("mlsId"), h.get("listingId", "")))
+            lid_raw = _first_val(
+                h.get("mlsId"), h.get("listingId"), h.get("propertyId"))
+            if lid_raw is None:
+                # No usable ID — skip rather than dedupe every id-less
+                # listing against the string "None".
+                continue
+            lid = str(lid_raw)
             if lid in seen_ids:
                 continue
             seen_ids.add(lid)
@@ -502,9 +531,7 @@ def _download_sold_csv():
 
             address = (_val(h.get("streetLine"), "") or "").strip()
             sold_date = _normalize_sold_date(
-                _val(h.get("soldDate")) or h.get("lastSaleDate")
-                or _val(h.get("lastSaleDate"))
-            )
+                _first_val(h.get("soldDate"), h.get("lastSaleDate")))
             if not address or not sold_date:
                 continue
 
