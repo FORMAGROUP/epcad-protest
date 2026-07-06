@@ -13,6 +13,15 @@ DB_PATH = os.path.join(ROOT, "data", "epcad.db")
 CONFIG_PATH = os.path.join(ROOT, "config.json")
 
 
+class SubjectNotFound(Exception):
+    """Raised when a subject property cannot be resolved.
+
+    Callers should catch this and surface a user-facing message. Library
+    code must not call sys.exit — this used to kill Flask workers and
+    forced callers to catch SystemExit as a workaround.
+    """
+
+
 def load_config():
     with open(CONFIG_PATH) as f:
         return json.load(f)
@@ -150,8 +159,14 @@ def _find_subject_sqlite(conn, account=None, address=None, zipcode=None):
             print(f"No match in ZIP {zipcode}, retrying without ZIP filter...")
             return _find_subject_sqlite(conn, address=address, zipcode=None)
 
-    print("ERROR: Property not found.", file=sys.stderr)
-    sys.exit(1)
+    hint = ""
+    if account:
+        hint = f" account={account!r}"
+    if address:
+        hint += f" address={address!r}"
+    if zipcode:
+        hint += f" zipcode={zipcode!r}"
+    raise SubjectNotFound(f"Property not found for{hint}".strip())
 
 
 def _add_distance(comps, subj_lat, subj_lng):

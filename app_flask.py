@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file, render_template
 # Ensure src/ imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from comps import (load_config, get_db, find_subject,
+from comps import (load_config, get_db, find_subject, SubjectNotFound,
                    tier3_equal_uniform, select_tier1_comps)
 from listings import fetch_and_store, find_tier2_comps
 from scorer import adjust_tier1, final_recommendation, calculate_protest_score
@@ -122,7 +122,7 @@ def _run_analysis(address, zipcode, result_holder):
         # Find subject
         try:
             subject = find_subject(conn, address=address, zipcode=zipcode)
-        except SystemExit:
+        except SubjectNotFound:
             conn.close()
             result_holder[0] = {"error": f"Property not found: \"{address}\"",
                                 "status": 404}

@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from comps import (
     load_config, get_db, find_subject, tier1_closed_sales,
     tier3_equal_uniform, print_subject, print_tier1, print_tier3,
+    SubjectNotFound,
 )
 from listings import fetch_and_store, find_tier2_comps, print_tier2
 from scorer import adjust_tier1, final_recommendation
@@ -74,4 +75,8 @@ if __name__ == "__main__":
     parser.add_argument("--year", type=int, help="Protest year")
     args = parser.parse_args()
 
-    run(account=args.account, address=args.address, output=args.output)
+    try:
+        run(account=args.account, address=args.address, output=args.output)
+    except SubjectNotFound as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        sys.exit(1)
