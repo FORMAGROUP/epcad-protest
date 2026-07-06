@@ -602,9 +602,13 @@ def _page3_tier2(subject, tier2_comps, ss, protest_year):
     return elements
 
 
-def _page4_tier3(subject, comps, recommendation, ss):
+def _page4_tier3(subject, comps, recommendation, ss, config):
     """Page 4: Tier 3 Equal & Uniform grid — 2025 certified comps vs
-    2026 proposed subject value (professional appraiser methodology)."""
+    2026 proposed subject value (professional appraiser methodology).
+
+    Adjustment values come from the t3_* fields comps.py stores on each
+    comp using config["adjustment_rates"] — one source of truth.
+    """
     elements = []
     elements.append(_tier_banner(
         "TIER 3: EQUAL & UNIFORM ANALYSIS (2025 Certified vs 2026 Proposed)"))
@@ -698,74 +702,45 @@ def _page4_tier3(subject, comps, recommendation, ss):
         ss["Heading4"]))
     elements.append(Spacer(1, 4))
 
-    # Detect subject components from API improvement data
-    subj_imps = subject.get("_improvements") or []
-    subj_garage_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
-                           if (i.get("TypeCD") or "").strip() == "G")
-    subj_cpat_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
-                         if (i.get("TypeCD") or "").strip() == "CPAT")
-    subj_porch_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
-                          if (i.get("TypeCD") or "").strip() == "O")
-    subj_pool_sqft = sum(i.get("SquareFootage", 0) for i in subj_imps
-                         if (i.get("TypeCD") or "").strip() in ("SW", "SWP"))
+    # Adjustment rates — single source of truth in config. comps.py already
+    # applied these rates when populating c["t3_*"], so we read the rates
+    # here only to render the footnote.
+    rates = config.get("adjustment_rates", {})
+    rate_main = rates.get("R4_main", 110.34)
+    rate_land = rates.get("land_per_sqft", 2.00)
+    rate_age = rates.get("age_per_year_dollar", 500)
 
-    # EPCAD R4 class rates from 2025 Certified Export cost schedule
-    RATE_MAIN = 110.34       # $/sqft R4 main area
-    RATE_GARAGE = 55.17      # $/sqft garage
-    RATE_PORCH_CVD = 27.50   # $/sqft covered patio
-    RATE_PORCH_OPEN = 15.00  # $/sqft open porch
-    RATE_LAND = 2.00         # $/sqft land delta
-
-    adj_headers = ["Account", "Land", "Living\nArea",
-                   "Garage", "Cvd Porch", "Open\nPorch", "Pool",
+    adj_headers = ["Account", "Land", "Living\nArea", "Year",
                    "Net Adj", "Indicated"]
     adj_rows = [adj_headers]
 
-    # Subject row
+    # Subject row — subject is the baseline, so all adjustments are zero
+    # and the indicated value is its own 2026 proposed appraised value.
     adj_rows.append([
         subject["account_number"][:8],
-        "—", "—", "—", "—", "—", "—", "—",
+        "—", "—", "—", "—",
         _dollar(appraised),
     ])
 
     for c in comps:
-        comp_sqft = c.get("living_area_sqft") or 0
-        comp_land_sqft = c.get("lot_size_sqft") or 0
-        subj_lot = subject.get("lot_size_sqft") or 0
-        certified = c.get("certified_value") or c.get("appraised_value") or 0
-
-        land_adj = round((subj_lot - comp_land_sqft) * RATE_LAND) if subj_lot else 0
-        area_adj = round((sqft - comp_sqft) * RATE_MAIN)
-        # Garage/porch/pool: assume comp lacks if no API data
-        garage_adj = 0
-        cpat_adj = 0
-        porch_adj = 0
-        pool_adj = 0
-
-        net = land_adj + area_adj + garage_adj + cpat_adj + porch_adj + pool_adj
-        indicated = round(certified + net)
-
         adj_rows.append([
             c["account_number"][:8],
-            _dollar(land_adj),
-            _dollar(area_adj),
-            _dollar(garage_adj) if garage_adj else "—",
-            _dollar(cpat_adj) if cpat_adj else "—",
-            _dollar(porch_adj) if porch_adj else "—",
-            _dollar(pool_adj) if pool_adj else "—",
-            _dollar(net),
-            _dollar(indicated),
+            _dollar(c.get("t3_land_adj")),
+            _dollar(c.get("t3_sqft_adj")),
+            _dollar(c.get("t3_year_adj")),
+            _dollar(c.get("t3_net_adj")),
+            _dollar(c.get("t3_indicated_value")),
         ])
 
-    adj_col_w = [0.6*inch, 0.65*inch, 0.65*inch, 0.6*inch,
-                 0.6*inch, 0.55*inch, 0.55*inch, 0.7*inch, 0.8*inch]
+    adj_col_w = [0.8*inch, 0.9*inch, 0.9*inch, 0.8*inch,
+                 0.9*inch, 1.0*inch]
     adj_tbl = Table(adj_rows, colWidths=adj_col_w)
     adj_style = _table_style_base()
     adj_style += [
         ("FONTNAME", (0, 1), (-1, 1), "Helvetica-Bold"),
         ("BACKGROUND", (0, 1), (-1, 1), MED_GRAY),
-        ("FONTSIZE", (0, 0), (-1, -1), 7),
-        ("FONTSIZE", (0, 0), (-1, 0), 7.5),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("FONTSIZE", (0, 0), (-1, 0), 8.5),
     ]
     _alt_row_shading(adj_style, len(comps), start_row=2)
     adj_style.append(("FONTNAME", (-1, 2), (-1, -1), "Helvetica-Bold"))
@@ -774,12 +749,9 @@ def _page4_tier3(subject, comps, recommendation, ss):
     elements.append(Spacer(1, 4))
 
     elements.append(Paragraph(
-        f"EPCAD R4 class rates (2025 Certified Export): Main Area "
-        f"${RATE_MAIN:.2f}/sqft, Garage ${RATE_GARAGE:.2f}/sqft, "
-        f"Covered Porch ${RATE_PORCH_CVD:.2f}/sqft, Open Porch "
-        f"${RATE_PORCH_OPEN:.2f}/sqft, Land ${RATE_LAND:.2f}/sqft delta. "
-        f"Age adjustment $500/year. Component columns require per-comp "
-        f"API data — shown as dashes when unavailable.",
+        f"Adjustment rates: Living Area ${rate_main:.2f}/sqft, "
+        f"Land ${rate_land:.2f}/sqft delta, Age ${rate_age:.0f}/year. "
+        f"Rates configured in config.json → adjustment_rates.",
         ss["SectionNote"]))
     # ---- Statistical summary — force to top of new page ----
     elements.append(PageBreak())
@@ -1566,7 +1538,7 @@ def generate_pdf(subject, tier1_comps, tier3_comps, recommendation, config,
     elements.append(PageBreak())
 
     # Page 4 — Tier 3
-    elements += _page4_tier3(subject, tier3_comps, recommendation, ss)
+    elements += _page4_tier3(subject, tier3_comps, recommendation, ss, config)
     elements.append(PageBreak())
 
     # Page 5 — Cover letter
